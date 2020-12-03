@@ -1,0 +1,54 @@
+spring:
+  mail:
+    username: 2201986113@qq.com
+    password: amchevdunifvdiji
+    host: smtp.qq.com
+
+  redis:
+    database: 0
+    host: 49.234.81.80
+    port: 6379
+    password: 123456
+    jedis:
+      pool:
+        max-active: 200
+        max-wait: -1
+        min-idle: 0
+    timeout: 1000
+
+  datasource:
+    druid:
+      username: root
+      password: txy_flzx3000C,ysyhl9Q
+      url: jdbc:mysql://49.234.81.80/vfd_cloud
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.alibaba.druid.pool.DruidDataSource
+
+      initialization-mode: always
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      #   配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: stat, wall, slf4j
+      maxPoolPreparedStatementPerConnectionSize: 20
+      useGlobalDataSourceStat: true
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapping/*.xml
+  config-location: classpath:mybatis/mybatis-config.xml
+
+logging:
+  file:
+    name: vfd-cloud.log
+  level:
+    com:
+      example: trace

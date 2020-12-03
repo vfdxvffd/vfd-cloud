@@ -1,0 +1,205 @@
+package com.vfd.demo.controller;
+
+import com.vfd.demo.exception.VerificationCodeLengthException;
+import com.vfd.demo.service.UserLoginService;
+import com.vfd.demo.utils.RedisUtil;
+import com.vfd.demo.utils.SendMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
+
+/**
+ * @PackageName: com.vfd.cloud.controller
+ * @ClassName: AccountController
+ * @Description:
+ * @author: vfdxvffd
+ * @date: 11/26/20 4:17 PM
+ */
+@Controller
+public class AccountController {
+
+    @Autowired
+    SendMessage sendMessage;
+    @Autowired
+    RedisUtil redisUtil;
+    @Autowired
+    UserLoginService userLoginService;
+    //记录日志
+    Logger logger = LoggerFactory.getLogger(getClass());
+    //发送验证码的地址
+    String SOURCE_EMAIL_ADDRESS = "vfdxvffd@qq.com";
+
+
+    /**
+     * 发送验证码到用户邮箱
+     * @param email
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/sendCode")
+    public String sendCode(String email) {
+        String verificationCode = null;
+        try {
+            verificationCode = sendMessage.getVerificationCode();
+        } catch (VerificationCodeLengthException e) {
+            logger.error("sendCode:用户注册时生成的验证码长度不足6位");
+            return "VerificationCodeLengthException";
+        }
+        //先检查是否已存在此邮箱
+        if (userLoginService.isExist(email)) {
+            logger.info("sendCode:重复的email注册：" + email);
+            return "exitEmail";
+        }
+        //发送验证码
+        try {
+            sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud","your verification code is : " + verificationCode);
+        } catch (Exception e) {
+            logger.warn("sendCode:注册验证码邮件发送失败,email:" + email);
+            logger.warn("sendCode:" + e.toString());
+            return "exception";
+        }
+        //将验证码存到缓存中
+        redisUtil.set(email+":verificationCode",verificationCode,60);
+        return "success";
+    }
+
+    /**
+     * 用户注册
+     * @param exampleFirstName
+     * @param exampleLastName
+     * @param exampleInputEmail
+     * @param exampleInputVerification
+     * @param exampleInputPassword
+     * @param exampleRepeatPassword
+     * @return
+     */
+    @RequestMapping("/register")
+    public ModelAndView register(@RequestParam("exampleFirstName") String exampleFirstName,
+                                 @RequestParam("exampleLastName") String exampleLastName,
+                                 @RequestParam("exampleInputEmail") String exampleInputEmail,
+                                 @RequestParam("exampleInputVerification") String exampleInputVerification,
+                                 @RequestParam("exampleInputPassword") String exampleInputPassword,
+                                 @RequestParam("exampleRepeatPassword") String exampleRepeatPassword  ) {
+        ModelAndView modelAndView = new ModelAndView("register");
+        //从缓存中获取验证码
+        String verificationCode = (String) redisUtil.get(exampleInputEmail+":verificationCode");
+        if (!exampleInputPassword.equals(exampleRepeatPassword)) {
+            modelAndView.addObject("err","两次输入密码不一致");
+            logger.info("register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
+            return modelAndView;
+        }
+        if (!exampleInputVerification.equals(verificationCode)) {  //验证码错误
+            modelAndView.addObject("err","验证码错误");
+            logger.info("register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
+        } else {    //验证码正确
+            Integer register = userLoginService.register(exampleFirstName + exampleLastName, exampleInputEmail, exampleInputPassword);
+            if (register == -1) {
+                modelAndView.addObject("err","用户邮箱已存在");
+                logger.info("register:用户邮箱重复注册，email:" + exampleInputEmail);
+            } else if (register == 0) {
+                modelAndView.addObject("err","注册失败，请重试");
+                logger.error("register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
+            } else {
+                modelAndView = new ModelAndView("login");
+                modelAndView.addObject("msg","注册成功，请登陆");
+                //验证设置过期，删除验证码
+                redisUtil.del(exampleInputEmail+":verificationCode");
+                logger.info("register：注册成功！新用户id为：" + register);
+            }
+        }
+        return modelAndView;
+    }
+
+    /**
+     * 用户登陆
+     * @param exampleInputEmail
+     * @param exampleInputPassword
+     * @return
+     */
+    @RequestMapping("/login")
+    public ModelAndView login(@RequestParam("exampleInputEmail") String exampleInputEmail,
+                        @RequestParam("exampleInputPassword") String exampleInputPassword) {
+        ModelAndView modelAndView = new ModelAndView("login");
+        Integer login = userLoginService.login(exampleInputEmail, exampleInputPassword);
+        if (login == -1) {
+            modelAndView.addObject("err","用户不存在");
+            logger.info("login:一个不存在的用户登陆，email:" + exampleInputEmail);
+        } else if (login == 0) {
+            modelAndView.addObject("err","密码错误");
+            logger.info("login:用户登陆密码错误,email:" + exampleInputEmail);
+        } else {
+            modelAndView = new ModelAndView("index");
+            modelAndView.addObject("username",exampleInputEmail);
+            logger.info("login:用户登陆成功，id为："+login);
+        }
+        return modelAndView;
+    }
+
+    /**
+     * 忘记密码，给用户注册邮箱发送一个带有过期时间的链接修改密码
+     * @param email
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/forget_password")
+    public String forget_password(String email) {
+        //先检查邮箱
+        if (!userLoginService.isExist(email)) {     //用户未注册
+            logger.info("forget_password:一个未注册的用户修改密码,email:" + email);
+            return "notExist";
+        }
+        //生成uuid
+        String uuid = UUID.randomUUID().toString();
+        String link = "http://localhost:8080/pages/reset-password?uuid=" + uuid + "&email=" + email;
+        String context = "<h1>Now, you can reset your password by clicking on the link below</h1><br><hr>" + link;
+        sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud",context,true);
+        redisUtil.set(email+":uuid",uuid,60);
+        logger.info("forget_password:用户修改密码,email:" + email);
+        return "success";
+    }
+
+    /**
+     * 处理重置密码的请求
+     * @param exampleInputPassword
+     * @param exampleRepeatPassword
+     * @param email
+     * @param request
+     * @return
+     */
+    @RequestMapping("/reset_password")
+    public ModelAndView reset_password(@RequestParam("exampleInputPassword") String exampleInputPassword,
+                                       @RequestParam("exampleRepeatPassword") String exampleRepeatPassword,
+                                       @RequestParam("email") String email,
+                                       HttpServletRequest request){
+        ModelAndView modelAndView = null;
+        if (!exampleInputPassword.equals(exampleRepeatPassword)) {
+            modelAndView = new ModelAndView("reset-password");
+            modelAndView.addObject("err", "密码不一致");
+            request.setAttribute("email",email);
+        } else {
+            if (email.length() == 0) {
+                email = (String) request.getAttribute("email");
+            }
+            if (userLoginService.updateUserPassword(email,exampleInputPassword)) {
+                redisUtil.del(email+":uuid");       //删除缓存
+                modelAndView = new ModelAndView("login");
+                modelAndView.addObject("msg","密码修改成功，请登录");
+                logger.info("reset_password:用户密码修改成功，email:" + email);
+            } else {
+                modelAndView = new ModelAndView("reset-password");
+                modelAndView.addObject("err","密码修改失败，请重试");
+                logger.info("reset_password:用户密码修改失败，email:" + email);
+                request.setAttribute("email",email);
+            }
+        }
+        return modelAndView;
+    }
+}
