@@ -4,7 +4,7 @@
 
 1. 创建SpringBoot应用，并勾选以下应用框架
 
-   ![](img/2020-12-02_10-30.png)
+   ![](https://gitee.com/vfdxvffd/blogimage/raw/master/2020-12-02_10-30.png)
 
 2. 在pom.xml文件中引入以下依赖
 
