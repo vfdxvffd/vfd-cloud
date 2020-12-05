@@ -1,6 +1,6 @@
 package com.vfd.demo.controller;
 
-import com.vfd.demo.utils.RedisUtil;
+import com.vfd.demo.service.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class HelloController {
 
     @Autowired
-    RedisUtil redisUtil;
+    RedisService redisService;
 
     //记录日志
     Logger logger = LoggerFactory.getLogger(getClass());
@@ -59,7 +59,7 @@ public class HelloController {
      */
     @RequestMapping("/pages/reset-password")
     public ModelAndView reset_password(String uuid, String email) {
-        String id = (String) redisUtil.get(email + ":uuid");
+        String id = (String) redisService.get(email + ":uuid");
         ModelAndView modelAndView = null;
         if (uuid.equals(id)) {
             modelAndView = new ModelAndView("reset-password");

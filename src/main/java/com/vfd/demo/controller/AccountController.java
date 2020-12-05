@@ -1,8 +1,8 @@
 package com.vfd.demo.controller;
 
 import com.vfd.demo.exception.VerificationCodeLengthException;
+import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
-import com.vfd.demo.utils.RedisUtil;
 import com.vfd.demo.utils.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class AccountController {
     @Autowired
     SendMessage sendMessage;
     @Autowired
-    RedisUtil redisUtil;
+    RedisService redisService;
     @Autowired
     UserLoginService userLoginService;
     //记录日志
@@ -67,7 +67,7 @@ public class AccountController {
             return "exception";
         }
         //将验证码存到缓存中
-        redisUtil.set(email+":verificationCode",verificationCode,60);
+        redisService.set(email+":verificationCode",verificationCode,60);
         return "success";
     }
 
@@ -95,7 +95,7 @@ public class AccountController {
             logger.info("register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
             return modelAndView;
         }
-        String verificationCode = (String) redisUtil.get(exampleInputEmail+":verificationCode");
+        String verificationCode = (String) redisService.get(exampleInputEmail+":verificationCode");
         if (verificationCode == null) {
             modelAndView.addObject("err","验证码过期");
             logger.info("register:用户注册时验证码过期,email:" + exampleInputEmail);
@@ -114,7 +114,7 @@ public class AccountController {
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","注册成功，请登陆");
                 //验证设置过期，删除验证码
-                redisUtil.del(exampleInputEmail+":verificationCode");
+                redisService.del(exampleInputEmail+":verificationCode");
                 logger.info("register：注册成功！新用户id为：" + register);
             }
         }
@@ -164,7 +164,7 @@ public class AccountController {
         String link = "http://localhost:8080/pages/reset-password?uuid=" + uuid + "&email=" + email;
         String context = "<h1>Now, you can reset your password by clicking on the link below</h1><br><hr>" + link;
         sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud",context,true);
-        redisUtil.set(email+":uuid",uuid,60);
+        redisService.set(email+":uuid",uuid,60);
         logger.info("forget_password:用户修改密码,email:" + email);
         return "success";
     }
@@ -192,7 +192,7 @@ public class AccountController {
                 email = (String) request.getAttribute("email");
             }
             if (userLoginService.updateUserPassword(email,exampleInputPassword)) {
-                redisUtil.del(email+":uuid");       //删除缓存
+                redisService.del(email+":uuid");       //删除缓存
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","密码修改成功，请登录");
                 logger.info("reset_password:用户密码修改成功，email:" + email);
