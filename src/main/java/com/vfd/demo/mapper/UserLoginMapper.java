@@ -1,5 +1,6 @@
 package com.vfd.demo.mapper;
 
+import com.vfd.demo.bean.UserAccInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -44,4 +45,11 @@ public interface UserLoginMapper {
      * @return
      */
     Boolean updateUserPassword(String email, String password);
+
+    /**
+     * 根据用户email获取到用户的账号信息
+     * @param email
+     * @return
+     */
+    UserAccInfo getUserInfoByEmail(String email);
 }

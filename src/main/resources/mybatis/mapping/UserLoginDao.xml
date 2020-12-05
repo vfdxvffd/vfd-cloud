@@ -21,4 +21,9 @@
     <update id="updateUserPassword">
         update user_login set password = #{password} where email = #{email}
     </update>
+
+    <!--UserAccInfo getUserInfoByEmail(String email);-->
+    <select id="getUserInfoByEmail" resultType="com.vfd.demo.bean.UserAccInfo">
+        select * from user_login where email = #{email}
+    </select>
 </mapper>

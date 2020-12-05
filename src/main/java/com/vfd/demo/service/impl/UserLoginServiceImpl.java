@@ -1,5 +1,6 @@
 package com.vfd.demo.service.impl;
 
+import com.vfd.demo.bean.UserAccInfo;
 import com.vfd.demo.mapper.UserLoginMapper;
 import com.vfd.demo.service.UserLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,17 @@ public class UserLoginServiceImpl implements UserLoginService {
 
 
     public Integer login(String email, String password) {
-        if (userLoginMapper.getUserIdByEmail(email) == null) {
+        /*if (userLoginMapper.getUserIdByEmail(email) == null) {
             return -1;
         } else {
             Integer id = userLoginMapper.getUserId(email,password);
             return id == null? 0:id;
+        }*/
+        UserAccInfo accInfo = userLoginMapper.getUserInfoByEmail(email);
+        if (accInfo == null) {
+            return -1;
+        } else {
+            return accInfo.getPassword().equals(password)?accInfo.getId():0;
         }
     }
 
