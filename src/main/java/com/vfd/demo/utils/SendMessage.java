@@ -26,9 +26,6 @@ public class SendMessage {
     @Autowired
     JavaMailSenderImpl mailSender;
 
-    @Autowired
-    RedisUtil redisUtil;
-
     Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
