@@ -1,6 +1,6 @@
 package com.vfd.demo;
 
-import com.vfd.demo.utils.RedisUtil;
+import com.vfd.demo.service.RedisService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +11,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
+import java.util.ArrayList;
 
 @SpringBootTest
 class CloudApplicationTests {
@@ -20,7 +21,7 @@ class CloudApplicationTests {
     JavaMailSenderImpl mailSender;
 
     @Autowired
-    RedisUtil redisUtil;
+    RedisService redisService;
 
     /**
      * 发送简单邮件
@@ -55,14 +56,12 @@ class CloudApplicationTests {
 
     @Test
     public void test01() {
-        if (redisUtil.hasKey("fxlsb")) {
-            System.out.println(redisUtil.get("fxlsb"));
-        } else {
-            System.out.println("fail");
-        }
-
-        //插入一条数据
-        //System.out.println(redisUtil.set("fxlsb", "dsb", 300));
+        ArrayList<Integer> list = new ArrayList<>();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        //redisService.set("test",new com.vfd.demo.bean.Test("a","string",3,true,list),30);
+        System.out.println(redisService.get("test"));
     }
 
 }

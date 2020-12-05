@@ -1,7 +1,7 @@
 package com.vfd.demo;
 
 import com.vfd.demo.mapper.UserLoginMapper;
-import com.vfd.demo.utils.RedisUtil;
+import com.vfd.demo.service.RedisService;
 import com.vfd.demo.utils.SendMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +24,16 @@ public class DealData {
     UserLoginMapper userLoginMapper;
 
     @Autowired
-    RedisUtil redisUtil;
+    RedisService redisService;
 
     @Autowired
     SendMessage sendMessage;
 
     @Test
     public void test() {
-        redisUtil.set("key","123456",1000);
+        redisService.set("key","123456",1000);
         for (int i = 0; i < 20; i++) {
-            System.out.println(redisUtil.get("key"));
+            System.out.println(redisService.get("key"));
         }
     }
 
