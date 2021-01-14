@@ -6,6 +6,7 @@ import com.vfd.demo.service.UserLoginService;
 import com.vfd.demo.utils.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -26,12 +30,14 @@ import java.util.UUID;
 @Controller
 public class AccountController {
 
-    @Autowired
-    SendMessage sendMessage;
+    /*@Autowired
+    SendMessage sendMessage;*/
     @Autowired
     RedisService redisService;
     @Autowired
     UserLoginService userLoginService;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
     //记录日志
     Logger logger = LoggerFactory.getLogger(getClass());
     //发送验证码的地址
@@ -47,27 +53,40 @@ public class AccountController {
     @RequestMapping("/sendCode")
     public String sendCode(String email) {
         String verificationCode = null;
-        try {
+        /*try {
             verificationCode = sendMessage.getVerificationCode();
         } catch (VerificationCodeLengthException e) {
             logger.error("sendCode:用户注册时生成的验证码长度不足6位");
             return "VerificationCodeLengthException";
-        }
+        }*/
+        verificationCode = getVerificationCode();
         //先检查是否已存在此邮箱
         if (userLoginService.isExist(email)) {
-            logger.info("sendCode:重复的email注册：" + email);
+            //logger.info("sendCode:重复的email注册：" + email);
             return "exitEmail";
         }
+        Map<String,String> map = new HashMap<>(9);
         //发送验证码
-        try {
+        map.put("source_email",SOURCE_EMAIL_ADDRESS);
+        map.put("dest_email",email);
+        map.put("title","vfd-cloud");
+        map.put("context","your verification code is : " + verificationCode);
+        map.put("html","false");
+        /*try {
             sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud","your verification code is : " + verificationCode);
         } catch (Exception e) {
             logger.warn("sendCode:注册验证码邮件发送失败,email:" + email);
             logger.warn("sendCode:" + e.toString());
             return "exception";
-        }
+        }*/
         //将验证码存到缓存中
-        redisService.set(email+":verificationCode",verificationCode,60);
+        map.put("key",email+":verificationCode");
+        map.put("val",verificationCode);
+        map.put("time","60");
+        //记录日志
+        map.put("log","sendCode:用户注册发送验证码,email:" + email);
+        rabbitTemplate.convertAndSend("account.topic","account.sendCode",map);
+        //redisService.set(email+":verificationCode",verificationCode,60);
         return "success";
     }
 
@@ -92,30 +111,39 @@ public class AccountController {
         //从缓存中获取验证码
         if (!exampleInputPassword.equals(exampleRepeatPassword)) {
             modelAndView.addObject("err","两次输入密码不一致");
-            logger.info("register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
+            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
+            //logger.info("register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
             return modelAndView;
         }
         String verificationCode = (String) redisService.get(exampleInputEmail+":verificationCode");
         if (verificationCode == null) {
             modelAndView.addObject("err","验证码过期");
-            logger.info("register:用户注册时验证码过期,email:" + exampleInputEmail);
+            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码过期,email:" + exampleInputEmail);
+            //logger.info("register:用户注册时验证码过期,email:" + exampleInputEmail);
         } else if (!exampleInputVerification.equals(verificationCode)) {  //验证码错误
             modelAndView.addObject("err","验证码错误");
-            logger.info("register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
+            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
+            //logger.info("register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
         } else {    //验证码正确
             Integer register = userLoginService.register(exampleFirstName + exampleLastName, exampleInputEmail, exampleInputPassword);
             if (register == -1) {
                 modelAndView.addObject("err","用户邮箱已存在");
-                logger.info("register:用户邮箱重复注册，email:" + exampleInputEmail);
+                rabbitTemplate.convertAndSend("log.direct","info","register:用户邮箱重复注册，email:" + exampleInputEmail);
+                //logger.info("register:用户邮箱重复注册，email:" + exampleInputEmail);
             } else if (register == 0) {
                 modelAndView.addObject("err","注册失败，请重试");
-                logger.error("register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
+                rabbitTemplate.convertAndSend("log.direct","error","register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
+                //logger.error("register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
             } else {
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","注册成功，请登陆");
                 //验证设置过期，删除验证码
-                redisService.del(exampleInputEmail+":verificationCode");
-                logger.info("register：注册成功！新用户id为：" + register);
+                Map<String,String> map = new HashMap<>(2);
+                map.put("del",exampleInputEmail+":verificationCode");
+                map.put("log","register：注册成功！新用户id为：" + register);
+                rabbitTemplate.convertAndSend("account.topic","account.register",map);
+                /*redisService.del(exampleInputEmail+":verificationCode");
+                logger.info("register：注册成功！新用户id为：" + register);*/
             }
         }
         return modelAndView;
@@ -134,14 +162,17 @@ public class AccountController {
         Integer login = userLoginService.login(exampleInputEmail, exampleInputPassword);
         if (login == -1) {
             modelAndView.addObject("err","用户不存在");
-            logger.info("login:一个不存在的用户登陆，email:" + exampleInputEmail);
+            //logger.info("login:一个不存在的用户登陆，email:" + exampleInputEmail);
+            rabbitTemplate.convertAndSend("log.direct","info","login:一个不存在的用户登陆，email:" + exampleInputEmail);
         } else if (login == 0) {
             modelAndView.addObject("err","密码错误");
-            logger.info("login:用户登陆密码错误,email:" + exampleInputEmail);
+            //logger.info("login:用户登陆密码错误,email:" + exampleInputEmail);
+            rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆密码错误,email:" + exampleInputEmail);
         } else {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",exampleInputEmail);
-            logger.info("login:用户登陆成功，id为："+login);
+            //logger.info("login:用户登陆成功，id为："+login);
+            rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login);
         }
         return modelAndView;
     }
@@ -156,16 +187,30 @@ public class AccountController {
     public String forget_password(String email) {
         //先检查邮箱
         if (!userLoginService.isExist(email)) {     //用户未注册
-            logger.info("forget_password:一个未注册的用户修改密码,email:" + email);
+            //logger.info("forget_password:一个未注册的用户修改密码,email:" + email);
             return "notExist";
         }
         //生成uuid
         String uuid = UUID.randomUUID().toString();
         String link = "http://localhost:8080/pages/reset-password?uuid=" + uuid + "&email=" + email;
         String context = "<h1>Now, you can reset your password by clicking on the link below</h1><br><hr>" + link;
-        sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud",context,true);
-        redisService.set(email+":uuid",uuid,60);
-        logger.info("forget_password:用户修改密码,email:" + email);
+        Map<String,String> map = new HashMap<>(9);
+        //发送邮件
+        map.put("source_email",SOURCE_EMAIL_ADDRESS);
+        map.put("dest_email",email);
+        map.put("title","vfd-cloud");
+        map.put("context",context);
+        map.put("html","true");
+        //sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud",context,true);
+        //加入uuid入redis
+        map.put("key",email+":uuid");
+        map.put("val",uuid);
+        map.put("time","60");
+        //redisService.set(email+":uuid",uuid,60);
+        //记录日志
+        map.put("log","forget_password:用户修改密码,email:" + email);
+        //logger.info("forget_password:用户修改密码,email:" + email);
+        rabbitTemplate.convertAndSend("account.topic","account.sendUUid",map);
         return "success";
     }
 
@@ -192,10 +237,14 @@ public class AccountController {
                 email = (String) request.getAttribute("email");
             }
             if (userLoginService.updateUserPassword(email,exampleInputPassword)) {
-                redisService.del(email+":uuid");       //删除缓存
+                Map<String, String> map = new HashMap<>(2);
+                map.put("del",email+":uuid");
+                map.put("log","reset_password:用户密码修改成功，email:" + email);
+                rabbitTemplate.convertAndSend("account.topic","account.reset",map);
+                //redisService.del(email+":uuid");       //删除缓存
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","密码修改成功，请登录");
-                logger.info("reset_password:用户密码修改成功，email:" + email);
+                //logger.info("reset_password:用户密码修改成功，email:" + email);
             } else {
                 modelAndView = new ModelAndView("reset-password");
                 modelAndView.addObject("err","密码修改失败，请重试");
@@ -204,5 +253,22 @@ public class AccountController {
             }
         }
         return modelAndView;
+    }
+
+    /**
+     * 生成6位验证码
+     * @return
+     */
+    private String getVerificationCode() {
+        Random random = new Random();
+        String verificationCode = "";
+        for (int i = 0; i < 6; i++) {
+            verificationCode += random.nextInt(10);
+        }
+        if (verificationCode.length() == 6) {
+            return verificationCode;
+        } else {
+            throw new VerificationCodeLengthException(verificationCode.length());
+        }
     }
 }
