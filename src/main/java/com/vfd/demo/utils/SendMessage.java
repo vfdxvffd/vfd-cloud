@@ -67,21 +67,4 @@ public class SendMessage {
         }
         mailSender.send(mimeMessage);
     }
-
-    /**
-     * 生成6位验证码
-     * @return
-     */
-    public String getVerificationCode() {
-        Random random = new Random();
-        String verificationCode = "";
-        for (int i = 0; i < 6; i++) {
-            verificationCode += random.nextInt(10);
-        }
-        if (verificationCode.length() == 6) {
-            return verificationCode;
-        } else {
-            throw new VerificationCodeLengthException(verificationCode.length());
-        }
-    }
 }
