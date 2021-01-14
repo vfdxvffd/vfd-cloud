@@ -86,6 +86,12 @@
             <artifactId>tomcat-embed-core</artifactId>
             <version>9.0.39</version>
         </dependency>
+
+        <!--假如消息队列rabbitmq依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
