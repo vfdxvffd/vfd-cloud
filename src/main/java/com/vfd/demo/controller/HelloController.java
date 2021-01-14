@@ -66,7 +66,7 @@ public class HelloController {
             modelAndView.addObject("email",email);
         } else {
             modelAndView = new ModelAndView("blank");
-            logger.warn("reset_password:用户重置密码链接已失效，email：" + email);
+            //logger.warn("reset_password:用户重置密码链接已失效，email：" + email);
         }
         return modelAndView;
     }
