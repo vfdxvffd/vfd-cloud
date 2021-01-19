@@ -1,6 +1,5 @@
 package com.vfd.demo.utils;
 
-import com.vfd.demo.exception.VerificationCodeLengthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.Random;
 
 /**
  * @PackageName: com.vfd.cloud.utils
