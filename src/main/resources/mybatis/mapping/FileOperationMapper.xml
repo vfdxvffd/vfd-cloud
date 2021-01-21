@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--namespace:名称空间，写接口的全类名，相当于告诉Mybatis这个配置文件是实现哪个接口的-->
+<mapper namespace="com.vfd.demo.mapper.FileOperationMapper">
+    <insert id="saveFile" useGeneratedKeys="true" keyProperty="id">
+        insert into file (`name`,len,pid,location,`type`)
+            values (#{name}, #{len}, #{pid}, #{location}, #{type})
+    </insert>
+
+
+    <!--List<FileInfo> getFilesByFid(Integer fid);-->
+    <select id="getFilesByFid" resultType="com.vfd.demo.bean.FileInfo">
+        select * from file where pid = #{fid}
+    </select>
+
+    <!--String getLocationById(Integer id);-->
+    <select id="getLocationById" resultType="java.lang.String">
+        select location from file where id = #{id}
+    </select>
+</mapper>
