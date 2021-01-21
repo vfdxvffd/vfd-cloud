@@ -1,9 +1,10 @@
 package com.vfd.demo.controller;
 
+import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.exception.VerificationCodeLengthException;
+import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
-import com.vfd.demo.utils.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,10 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @PackageName: com.vfd.cloud.controller
@@ -30,8 +28,8 @@ import java.util.UUID;
 @Controller
 public class AccountController {
 
-    /*@Autowired
-    SendMessage sendMessage;*/
+    @Autowired
+    FileOperationService fileOperationService;
     @Autowired
     RedisService redisService;
     @Autowired
@@ -135,6 +133,7 @@ public class AccountController {
                 rabbitTemplate.convertAndSend("log.direct","error","register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
                 //logger.error("register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
             } else {
+                //fileOperationService.saveFile(new FileInfo(-1*register,"allFiles",1,0,-1*register+".allFiles",0));
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","注册成功，请登陆");
                 //验证设置过期，删除验证码
@@ -171,6 +170,13 @@ public class AccountController {
         } else {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",exampleInputEmail);
+            modelAndView.addObject("id",login);     //将用户id发送到index页面
+            modelAndView.addObject("fid",-1*login); //用户根文件夹id
+            modelAndView.addObject("location",-1*login+".allFiles");  //位置
+            modelAndView.addObject("files",fileOperationService.getFilesByFid(-1*login));
+            ArrayList<FileInfo> fileInfos = new ArrayList<>();
+            fileInfos.add(new FileInfo(-1*login,"allFiles"));
+            modelAndView.addObject("path",fileInfos);
             //logger.info("login:用户登陆成功，id为："+login);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login);
         }
@@ -261,12 +267,12 @@ public class AccountController {
      */
     private String getVerificationCode() {
         Random random = new Random();
-        String verificationCode = "";
+        StringBuilder verificationCode = new StringBuilder();
         for (int i = 0; i < 6; i++) {
-            verificationCode += random.nextInt(10);
+            verificationCode.append(random.nextInt(10));
         }
         if (verificationCode.length() == 6) {
-            return verificationCode;
+            return verificationCode.toString();
         } else {
             throw new VerificationCodeLengthException(verificationCode.length());
         }
