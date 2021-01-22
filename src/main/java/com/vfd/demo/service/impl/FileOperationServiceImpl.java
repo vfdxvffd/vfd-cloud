@@ -32,7 +32,7 @@ public class FileOperationServiceImpl implements FileOperationService {
     }
 
     @Override
-    public String getLocationById(Integer id) {
-        return fileOperationMapper.getLocationById(id);
+    public FileInfo getFileById(Integer id) {
+        return fileOperationMapper.getFileById(id);
     }
 }
