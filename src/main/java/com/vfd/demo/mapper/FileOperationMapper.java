@@ -32,9 +32,9 @@ public interface FileOperationMapper {
     List<FileInfo> getFilesByFid(Integer fid);
 
     /**
-     * 通过id获得location
+     * 通过id获得文件对象
      * @param id
      * @return
      */
-    String getLocationById(Integer id);
+    FileInfo getFileById(Integer id);
 }
