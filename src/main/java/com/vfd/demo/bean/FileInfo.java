@@ -19,6 +19,15 @@ public class FileInfo {
     public FileInfo() {
     }
 
+    public FileInfo(FileInfo fileInfo) {
+        this.id = fileInfo.getId();
+        this.name = fileInfo.getName();
+        this.len = fileInfo.getLen();
+        this.pid = fileInfo.getPid();
+        this.location = fileInfo.getLocation();
+        this.type = fileInfo.getType();
+    }
+
     public FileInfo(Integer id, String name) {
         this.id = id;
         this.name = name;
