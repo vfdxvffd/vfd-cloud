@@ -58,7 +58,7 @@ public class UploadFileController {
         }
         modelAndView.addObject("username",username);
         modelAndView.addObject("fid",fid); //文件id
-        modelAndView.addObject("location",location);  //位置
+//        modelAndView.addObject("location",location);  //位置
         return modelAndView;
     }
 
@@ -75,20 +75,46 @@ public class UploadFileController {
     public ModelAndView enterFile(@RequestParam("username") String username,
                                   @RequestParam("fid") Integer fid) {
         ModelAndView modelAndView = new ModelAndView("index");
-        System.out.println("fid============" + fid);
-        String location = fileOperationService.getLocationById(fid);
+        FileInfo fileInfo = fileOperationService.getFileById(fid);  //父目录对象
         modelAndView.addObject("username",username);
-        modelAndView.addObject("fid",fid); //文件id
-        modelAndView.addObject("location",location);  //位置
-        List<FileInfo> filesByFid = fileOperationService.getFilesByFid(fid);
-        modelAndView.addObject("files",filesByFid);
-        String[] dirs = location.split(">");
-        ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        for (String dir:dirs) {
-            String[] split = dir.split("\\.");
-            fileInfos.add(new FileInfo(Integer.parseInt(split[0]),split[1]));
+//        modelAndView.addObject("fid",fid); //文件id
+//        modelAndView.addObject("location",fileInfo.getLocation());  //位置
+        List<FileInfo> all = fileOperationService.getFilesByFid(fid);
+        List<FileInfo> dirs = new ArrayList<>();     //文件夹
+        List<FileInfo> docs = new ArrayList<>();     //文档
+        for (FileInfo f : all) {
+            if (f.getType() == 0) {
+                dirs.add(new FileInfo(f));
+            } else {
+                docs.add(new FileInfo(f));
+            }
         }
+        modelAndView.addObject("dirs",dirs);
+        modelAndView.addObject("docs",docs);
+        String[] dirId = fileInfo.getLocation().split(">");
+        ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        for (String dir:dirId) {
+            String[] split = dir.split("\\.");
+            if (split.length == 2)
+                fileInfos.add(new FileInfo(Integer.parseInt(split[0]),split[1]));
+        }
+//        fileInfos.add(fileInfo);
+        modelAndView.addObject("currentDir",fileInfo);
         modelAndView.addObject("path",fileInfos);
+        return modelAndView;
+    }
+
+
+    @PostMapping("/mkdir")
+    public ModelAndView mkdir(@RequestParam("username") String username,
+                              @RequestParam("fid") Integer fid,
+                              @RequestParam("location") String location,
+                              @RequestParam("inputDir") String dirName,
+                              @RequestParam("f_name") String fName) {
+        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
+        fileOperationService.saveFile(new FileInfo(dirName,1,fid,location+">"+fid+"."+fName,0));
+        modelAndView.addObject("username",username);
+        modelAndView.addObject("fid",fid);
         return modelAndView;
     }
 }
