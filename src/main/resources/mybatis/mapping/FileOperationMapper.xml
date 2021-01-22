@@ -17,7 +17,7 @@
     </select>
 
     <!--String getLocationById(Integer id);-->
-    <select id="getLocationById" resultType="java.lang.String">
-        select location from file where id = #{id}
+    <select id="getFileById" resultType="com.vfd.demo.bean.FileInfo">
+        select * from file where id = #{id}
     </select>
 </mapper>
