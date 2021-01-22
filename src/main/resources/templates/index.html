@@ -181,7 +181,7 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Vfd-Cloud</h1>
-                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#mkdirModal"><i
                                 class="fas fa-download fa-sm text-white-50"></i> 新建文件夹</a>
                         <form id="upload_file" action="/uploadFile" method="post" enctype="multipart/form-data">
                             <a href="javascript:uploadFile()" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
@@ -193,44 +193,37 @@
                             </label>
                             <label>
                                 <!--当前文件夹的id-->
-                                <input style="display: none" type="number" name="fid" th:value="${fid}">
+                                <input style="display: none" type="number" name="fid" th:value="${currentDir.getId()}">
                             </label>
                             <label>
                                 <!--目录的location-->
-                                <input style="display: none" type="text" name="location" th:value="${location}">
+                                <input style="display: none" type="text" name="location" th:value="${currentDir.getLocation()}">
                             </label>
                         </form>
                     </div>
                 </div>
-                <!-- /.container-fluid -->
-                <!--<div style="overflow-x: auto; overflow-y: auto; height: 380px; width:1100px;">
-                    <table border="1" align="center" width="1000px" height="370px">
-                        <tr>
-                            <th>文档名</th>
-                            <th>长度</th>
-                        </tr>
-                        <tr th:each="file:${files}">
-                            <td th:text="${file.getName()}"></td>
-                            <td th:text="${file.length}"></td>
-                        </tr>
-                    </table>
-                </div>-->
+                <!--导航栏-->
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 float-left">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <div class="float-left" th:each="pa:${path}">
+                            <div class="float-left">
+                                <div class="float-left" th:each="pa:${path}">
+                                    <div>
+                                        <form action="/enterFile" method="post" th:id="'enter_dir' + ${pa.getId()}">
+                                            <label>
+                                                <input style="display: none" type="text" name="username" th:value="${username}">
+                                            </label>
+                                            <label>
+                                                <input style="display: none" type="number" name="fid" th:value="${pa.getId()}">
+                                            </label>
+                                            <a href="javascript:void(0)" th:onclick="enter_dir([[${pa.getId()}]]);">
+                                                <p th:text="${pa.getName()} + '>'"></p>
+                                            </a>
+                                        </form>
+                                    </div>
+                                </div>
                                 <div class="float-left">
-                                    <form action="/enterFile" method="post" id="enter_dir">
-                                        <label>
-                                            <input style="display: none" name="username" th:value="${username}">
-                                        </label>
-                                        <label>
-                                            <input style="display: none" name="fid" th:value="${pa.getId()}">
-                                        </label>
-                                        <a href="javascript:void(0)" onclick="document.getElementById('enter_dir').submit();">
-                                            <p th:text="${pa.getName()}"></p>
-                                        </a>
-                                    </form>
+                                    <p th:text="${currentDir.getName()}"></p>
                                 </div>
                             </div>
                         </h6>
@@ -255,10 +248,32 @@
                                     </tr>
                                 </tfoot>
                                 <tbody>
-                                    <tr th:each="file:${files}">
-                                        <td th:text="${file.getName()}"></td>
-                                        <td th:text="${file.getLen()}"></td>
-                                        <td><a href="www.baidu.com">下载</a></td>
+                                    <tr th:each="dir:${dirs}">
+                                        <td>
+                                            <form action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
+                                                <!--style="display: none"-->
+                                                <label>
+                                                    <input style="display: none" type="text" name="username" th:value="${username}">
+                                                </label>
+                                                <label>
+                                                    <input style="display: none" type="number" name="fid" th:value="${dir.getId()}">
+                                                </label>
+                                                <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
+                                                <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getId()}]]);">
+                                                    <p th:text="${dir.getName()}"></p>
+                                                </a>
+                                            </form>
+                                        </td>
+                                        <td th:text="${dir.getLen()}"></td>
+                                        <td><a href="">删除</a></td>
+                                        <td>2021/1/21 18:48</td>
+                                    </tr>
+                                    <tr th:each="doc:${docs}">
+                                        <td>
+                                            <p th:text="${doc.getName()}"></p>
+                                        </td>
+                                        <td th:text="${doc.getLen()}"></td>
+                                        <td><a href="">下载</a></td>
                                         <td>2021/1/21 18:48</td>
                                     </tr>
                                 </tbody>
@@ -309,6 +324,37 @@
         </div>
     </div>
 
+
+    <!-- mkdir Modal-->
+    <div class="modal fade" id="mkdirModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="DirModalLabel">Enter Dir Name</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body form-group">
+                    <form action="/mkdir" method="POST" id="input_dir">
+                        <input style="display: none" type="text" name="username" th:value="${username}">
+                        <input style="display: none" type="number" name="fid" th:value="${currentDir.getId()}">
+                        <input style="display: none" type="text" name="location" th:value="${currentDir.getLocation()}">
+                        <input style="display: none" type="text" name="f_name" th:value="${currentDir.getName()}">
+                        <input type="text" class="form-control form-control-user" id="inputDir" name="inputDir"
+                               placeholder="dir name ...">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a onclick="document.getElementById('input_dir').submit();"
+                       class="btn btn-primary" href="javascript:void(0)">Create</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
@@ -335,6 +381,14 @@
     $("#select_file").change(function () {
         document.getElementById("upload_file").submit();
     });
+
+    function enter_into_dir(obj) {
+        document.getElementById('enter_into_dir'+obj).submit();
+    }
+
+    function enter_dir(obj) {
+        document.getElementById('enter_dir'+obj).submit();
+    }
 </script>
 
 </html>
