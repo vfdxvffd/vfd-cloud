@@ -170,12 +170,23 @@ public class AccountController {
         } else {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",exampleInputEmail);
-            modelAndView.addObject("id",login);     //将用户id发送到index页面
-            modelAndView.addObject("fid",-1*login); //用户根文件夹id
-            modelAndView.addObject("location",-1*login+".allFiles");  //位置
-            modelAndView.addObject("files",fileOperationService.getFilesByFid(-1*login));
+//            modelAndView.addObject("id",login);     //将用户id发送到index页面
+            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login)); //用户根文件夹id
+            modelAndView.addObject("location","");  //位置
+            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login);    //所有文件
+            List<FileInfo> dir = new ArrayList<>();     //文件夹
+            List<FileInfo> doc = new ArrayList<>();     //文档
+            for (FileInfo fileInfo : all) {
+                if (fileInfo.getType() == 0) {
+                    dir.add(new FileInfo(fileInfo));
+                } else {
+                    doc.add(new FileInfo(fileInfo));
+                }
+            }
+            modelAndView.addObject("dirs",dir);
+            modelAndView.addObject("docs",doc);
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
-            fileInfos.add(new FileInfo(-1*login,"allFiles"));
+//            fileInfos.add(new FileInfo(-1*login,"allFiles"));
             modelAndView.addObject("path",fileInfos);
             //logger.info("login:用户登陆成功，id为："+login);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login);
