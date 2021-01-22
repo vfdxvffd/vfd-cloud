@@ -28,9 +28,9 @@ public interface FileOperationService {
     List<FileInfo> getFilesByFid(Integer fid);
 
     /**
-     * 通过id获得location
+     * 通过id获得location和名字
      * @param id
      * @return
      */
-    String getLocationById(Integer id);
+    FileInfo getFileById(Integer id);
 }
