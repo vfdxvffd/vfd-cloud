@@ -20,4 +20,9 @@
     <select id="getFileById" resultType="com.vfd.demo.bean.FileInfo">
         select * from file where id = #{id}
     </select>
+
+    <!--void deleteFileById(Integer id);-->
+    <delete id="deleteFileById">
+        delete from file where id = #{id}
+    </delete>
 </mapper>
