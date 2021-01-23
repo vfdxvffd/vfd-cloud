@@ -11,7 +11,7 @@ public class FileInfo {
 
     private Integer id;         //文件id
     private String name;        //文件名字
-    private Integer len;        //文件长度
+    private Long len;        //文件长度
     private Integer pid;        //文件父目录id
     private String location;    //文件路径
     private Integer type;       //文件类型
@@ -33,7 +33,7 @@ public class FileInfo {
         this.name = name;
     }
 
-    public FileInfo(String name, Integer len, Integer pid, String location, Integer type) {
+    public FileInfo(String name, Long len, Integer pid, String location, Integer type) {
         this.name = name;
         this.len = len;
         this.pid = pid;
@@ -41,7 +41,7 @@ public class FileInfo {
         this.type = type;
     }
 
-    public FileInfo(Integer id, String name, Integer len, Integer pid, String location, Integer type) {
+    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type) {
         this.id = id;
         this.name = name;
         this.len = len;
@@ -78,11 +78,11 @@ public class FileInfo {
         this.name = name;
     }
 
-    public Integer getLen() {
+    public Long getLen() {
         return len;
     }
 
-    public void setLen(Integer len) {
+    public void setLen(Long len) {
         this.len = len;
     }
 
