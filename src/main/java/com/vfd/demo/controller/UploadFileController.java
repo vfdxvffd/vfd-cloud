@@ -46,7 +46,7 @@ public class UploadFileController {
             try {
                 for (MultipartFile file:files) {
                     if (!file.isEmpty()) {
-                        FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), files.length, fid, location,1);
+                        FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1);
                         fileOperationService.saveFile(fileInfo);
                         boolean mkdir = new File("/home/vfdxvffd/vfd-cloud/" + fileInfo.getId()).mkdirs();
                         file.transferTo(new File("/home/vfdxvffd/vfd-cloud/"+ fileInfo.getId() + "/" + file.getOriginalFilename()));
@@ -112,7 +112,7 @@ public class UploadFileController {
                               @RequestParam("inputDir") String dirName,
                               @RequestParam("f_name") String fName) {
         ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
-        fileOperationService.saveFile(new FileInfo(dirName,1,fid,location+">"+fid+"."+fName,0));
+        fileOperationService.saveFile(new FileInfo(dirName, 0L,fid,location+">"+fid+"."+fName,0));
         modelAndView.addObject("username",username);
         modelAndView.addObject("fid",fid);
         return modelAndView;
