@@ -208,7 +208,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">
                             <div class="float-left">
                                 <div class="float-left" th:each="pa:${path}">
-                                    <div>
+                                    <!--<div>-->
                                         <form action="/enterFile" method="post" th:id="'enter_dir' + ${pa.getId()}">
                                             <label>
                                                 <input style="display: none" type="text" name="username" th:value="${username}">
@@ -216,14 +216,13 @@
                                             <label>
                                                 <input style="display: none" type="number" name="fid" th:value="${pa.getId()}">
                                             </label>
-                                            <a href="javascript:void(0)" th:onclick="enter_dir([[${pa.getId()}]]);">
-                                                <p th:text="${pa.getName()} + '>'"></p>
-                                            </a>
+                                            <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_dir([[${pa.getId()}]]);">
+                                            </a> >
                                         </form>
-                                    </div>
+                                    <!--</div>-->
                                 </div>
                                 <div class="float-left">
-                                    <p th:text="${currentDir.getName()}"></p>
+                                    <p th:text="'&nbsp;' + ${currentDir.getName()}"></p>
                                 </div>
                             </div>
                         </h6>
@@ -248,7 +247,7 @@
                                     </tr>
                                 </tfoot>
                                 <tbody>
-                                    <tr th:each="dir:${dirs}">
+                                    <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
                                             <form action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
                                                 <!--style="display: none"-->
@@ -265,15 +264,18 @@
                                             </form>
                                         </td>
                                         <td th:text="${dir.getLen()}"></td>
-                                        <td><a href="">删除</a></td>
+                                        <td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>
                                         <td>2021/1/21 18:48</td>
                                     </tr>
-                                    <tr th:each="doc:${docs}">
+                                    <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
                                         </td>
                                         <td th:text="${doc.getLen()}"></td>
-                                        <td><a href="">下载</a></td>
+                                        <td>
+                                            <a th:href="@{'/download/' + ${doc.getId()}}">下载</a>
+                                            <a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);">删除</a>
+                                        </td>
                                         <td>2021/1/21 18:48</td>
                                     </tr>
                                 </tbody>
@@ -378,6 +380,7 @@
         document.getElementById("select_file").click();
 
     }
+    //监听，当上传文件的选择文件框发生变化则上传此时框中选中的文件
     $("#select_file").change(function () {
         document.getElementById("upload_file").submit();
     });
@@ -388,6 +391,33 @@
 
     function enter_dir(obj) {
         document.getElementById('enter_dir'+obj).submit();
+    }
+
+    //删除文件时利用ajax做异步，id为要删除的文件的id
+    function delete_file(id) {
+        var tr = document.getElementById("tr" + id);
+        $.ajax( {
+            type: "GET",
+            url: "/delete",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            data: {id: id},
+            success: function (result) {
+                if (result === "success") {
+                    tr.style.display="none";
+                    alert("删除成功!");
+                    return false;
+                } else {
+                    alert("删除失败，请稍后重试！");
+                }
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
     }
 </script>
 
