@@ -4,8 +4,10 @@ import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -34,5 +36,19 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Override
     public FileInfo getFileById(Integer id) {
         return fileOperationMapper.getFileById(id);
+    }
+
+    @Override
+    public Boolean deleteFileById(Integer id) {
+        return fileOperationMapper.deleteFileById(id);
+    }
+
+    @Async
+    @Override
+    public void deleteFileOnDiskById(Integer id) {
+        File file = new File("/home/vfdxvffd/vfd-cloud/" + id);
+        if (file.exists()) {
+            boolean delete = file.delete();
+        }
     }
 }
