@@ -33,4 +33,16 @@ public interface FileOperationService {
      * @return
      */
     FileInfo getFileById(Integer id);
+
+    /**
+     * 通过id删除某个文件
+     * @param id
+     */
+    Boolean deleteFileById(Integer id);
+
+    /**
+     * 真正在磁盘上删除文件
+     * @param id
+     */
+    void deleteFileOnDiskById(Integer id);
 }
