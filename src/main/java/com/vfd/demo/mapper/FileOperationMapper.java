@@ -37,4 +37,10 @@ public interface FileOperationMapper {
      * @return
      */
     FileInfo getFileById(Integer id);
+
+    /**
+     * 通过id删除某个文件
+     * @param id
+     */
+    Boolean deleteFileById(Integer id);
 }
