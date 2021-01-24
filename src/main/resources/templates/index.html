@@ -181,11 +181,25 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Vfd-Cloud</h1>
-                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#mkdirModal"><i
+                        <!--<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#mkdirModal"><i
                                 class="fas fa-download fa-sm text-white-50"></i> 新建文件夹</a>
-                        <form id="upload_file" action="/uploadFile" method="post" enctype="multipart/form-data">
-                            <a href="javascript:uploadFile()" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                                    class="fas fa-download fa-sm text-white-50"></i> 上传文件</a>
+                        <a href="javascript:uploadFile()" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                class="fas fa-download fa-sm text-white-50"></i> 上传文件</a>-->
+
+                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#mkdirModal">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                            <span class="text">新建文件夹</span>
+                        </a>
+                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" onclick="uploadFile();">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                            <span class="text">上传文件</span>
+                        </a>
+
+                        <form style="display: none" id="upload_file" action="/uploadFile" method="post" enctype="multipart/form-data">
                             <input style="display: none" type="file" id="select_file" name="select_file" multiple/><br/>
                             <label>
                                 <!--当前登陆用户的id-->
@@ -263,18 +277,39 @@
                                                 </a>
                                             </form>
                                         </td>
-                                        <td th:text="${dir.getLen()}"></td>
-                                        <td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>
+                                        <!--<td th:text="${dir.getLen()}"></td>-->
+                                        <td th:text="'--'"></td>         <!--文件夹长度不显示-->
+                                        <td>
+                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);" class="btn btn-danger btn-circle">
+                                                <i class="fas fa-trash"></i>
+                                            </a>-->
+
+                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                               th:onclick="Values([[${dir.getId()}]]);" class="btn btn-danger btn-circle">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        <!--<td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>-->
                                         <td>2021/1/21 18:48</td>
                                     </tr>
                                     <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
                                         </td>
-                                        <td th:text="${doc.getLen()}"></td>
+                                        <td th:text="${doc.convertToSize()}"></td>
                                         <td>
-                                            <a th:href="@{'/download/' + ${doc.getId()}}">下载</a>
-                                            <a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);">删除</a>
+                                            <!--<a th:href="@{'/download/' + ${doc.getId()}}">下载</a>-->
+                                            <a th:href="@{'/download/' + ${doc.getId()}}" class="btn btn-primary btn-circle">
+                                                <i class="fas fa-download fa-sm "></i>
+                                            </a>
+                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);">删除</a>-->
+                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);" class="btn btn-danger btn-circle">
+                                                <i class="fas fa-trash"></i>
+                                            </a>-->
+                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                               th:onclick="Values([[${doc.getId()}]]);" class="btn btn-danger btn-circle">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
                                         </td>
                                         <td>2021/1/21 18:48</td>
                                     </tr>
@@ -326,6 +361,26 @@
         </div>
     </div>
 
+    <!--delete file modal-->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm to Delete?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
+                <input type="hidden" id="deleteFileId" name="deleteFileId">
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value)">Confirm</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- mkdir Modal-->
     <div class="modal fade" id="mkdirModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -393,8 +448,13 @@
         document.getElementById('enter_dir'+obj).submit();
     }
 
+    function Values(ID) {
+        $('#deleteFileId').val(ID);
+    }
+
     //删除文件时利用ajax做异步，id为要删除的文件的id
     function delete_file(id) {
+        $('#deleteModal').modal('hide');
         var tr = document.getElementById("tr" + id);
         $.ajax( {
             type: "GET",
@@ -406,7 +466,6 @@
             success: function (result) {
                 if (result === "success") {
                     tr.style.display="none";
-                    alert("删除成功!");
                     return false;
                 } else {
                     alert("删除失败，请稍后重试！");
