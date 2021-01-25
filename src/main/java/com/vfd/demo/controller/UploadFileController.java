@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -36,17 +37,20 @@ public class UploadFileController {
      * @param location
      * @return
      */
+    @ResponseBody
     @PostMapping("/uploadFile")
-    public ModelAndView uploadFile(@RequestPart("select_file")MultipartFile[] files,
-                                   @RequestParam("username") String username,
-                                   @RequestParam("fid") Integer fid,
-                                   @RequestParam("location") String location) {
-        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
+    public List<FileInfo> uploadFile(@RequestPart("select_file")MultipartFile[] files,
+                                     @RequestParam("username") String username,
+                                     @RequestParam("fid") Integer fid,
+                                     @RequestParam("location") String location) {
+//        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
+        List<FileInfo> result = new ArrayList<>();
         if (files.length > 0) {
             try {
                 for (MultipartFile file:files) {
                     if (!file.isEmpty()) {
                         FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1);
+                        result.add(fileInfo);
                         fileOperationService.saveFile(fileInfo);
                         boolean mkdir = new File("/home/vfdxvffd/vfd-cloud/" + fileInfo.getId()).mkdirs();
                         file.transferTo(new File("/home/vfdxvffd/vfd-cloud/"+ fileInfo.getId() + "/" + file.getOriginalFilename()));
@@ -56,10 +60,11 @@ public class UploadFileController {
                 e.printStackTrace();
             }
         }
-        modelAndView.addObject("username",username);
-        modelAndView.addObject("fid",fid); //文件id
-//        modelAndView.addObject("location",location);  //位置
-        return modelAndView;
+        return result;
+//        modelAndView.addObject("username",username);
+//        modelAndView.addObject("fid",fid); //文件id
+//        //modelAndView.addObject("location",location);  //位置
+//        return modelAndView;
     }
 
 
