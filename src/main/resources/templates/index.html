@@ -466,6 +466,9 @@
                                placeholder="dir name ...">
                     </form>
                 </div>
+                <div class="modal-body">
+                    <p id="dup_dir" style="display: none">文件夹名字重复</p>
+                </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                     <!--<a onclick="document.getElementById('input_dir').submit();"
@@ -499,6 +502,12 @@
 </body>
 <script type="text/javascript">
 
+    /*当创建文件夹的模态框关闭时触发事件，让现实文件夹名字重复的p标签消失，并重置form表单*/
+    $('#mkdirModal').on('hide.bs.modal', function () {
+        document.getElementById('input_dir').reset();
+        document.getElementById('dup_dir').style.display='none';
+    })
+
     function mkdir() {
         var curr_user_name = document.getElementById('curr_user_name').textContent;
         var tbody_dir = document.getElementById('dir_tbody');
@@ -509,6 +518,11 @@
             cache: false,
             dataType: "json",
             success: function (result) {
+                if (result.id === 0) {
+                    document.getElementById('dup_dir').style.display='inline';
+                    document.getElementById('dup_dir').style.color='red';
+                    return false;
+                }
                 var add_html = "<tr id=\"tr"+result.id+"\">"+
                     "<td>"+
                     "<form style=\"display: none\" action=\"/enterFile\" method=\"post\" id=\"enter_into_dir"+result.id+"\">" +
@@ -532,6 +546,9 @@
                     "       </td>" +
                     "       <td>2021/1/21 18:48</td>" +
                     "   </tr>";
+                $('#mkdirModal').modal('hide');
+                //document.getElementById('input_dir').reset();
+                // document.getElementById('inputDir')
                 tbody_dir.innerHTML = add_html+tbody_dir.innerHTML;
                 return false;
             },
