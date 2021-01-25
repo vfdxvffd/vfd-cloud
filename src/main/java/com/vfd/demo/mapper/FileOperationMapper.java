@@ -25,6 +25,13 @@ public interface FileOperationMapper {
     Boolean saveFile (FileInfo fileInfo);
 
     /**
+     * 创建文件夹
+     * @param fileInfo
+     * @return
+     */
+    Boolean mkDir(FileInfo fileInfo);
+
+    /**
      * 通过父目录id获取其下所有文件
      * @param fid
      * @return
