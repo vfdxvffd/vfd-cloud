@@ -10,6 +10,11 @@
             values (#{name}, #{len}, #{pid}, #{location}, #{type})
     </insert>
 
+    <!--Boolean mkDir(FileInfo fileInfo);-->
+    <insert id="mkDir">
+        insert into file (id,`name`,len,pid,location,`type`)
+        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type})
+    </insert>
 
     <!--List<FileInfo> getFilesByFid(Integer fid);-->
     <select id="getFilesByFid" resultType="com.vfd.demo.bean.FileInfo">
