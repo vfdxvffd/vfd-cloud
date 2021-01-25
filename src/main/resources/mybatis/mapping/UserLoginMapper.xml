@@ -15,7 +15,7 @@
     </select>
 
     <insert id="addUser" useGeneratedKeys="true" keyProperty="id">
-        insert into user_login (email,password) values (#{email}, #{password})
+        insert into user_login (email,password, `name`) values (#{email}, #{password}, #{name})
     </insert>
 
     <update id="updateUserPassword">
