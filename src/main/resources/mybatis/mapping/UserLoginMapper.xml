@@ -14,7 +14,7 @@
         select id from user_login where email = #{email} and password = #{password}
     </select>
 
-    <insert id="addUser">
+    <insert id="addUser" useGeneratedKeys="true" keyProperty="id">
         insert into user_login (email,password) values (#{email}, #{password})
     </insert>
 
