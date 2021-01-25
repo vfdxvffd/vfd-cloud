@@ -110,16 +110,19 @@ public class UploadFileController {
     }
 
 
+    @ResponseBody
     @PostMapping("/mkdir")
-    public ModelAndView mkdir(@RequestParam("username") String username,
+    public FileInfo mkdir(@RequestParam("username") String username,
                               @RequestParam("fid") Integer fid,
                               @RequestParam("location") String location,
                               @RequestParam("inputDir") String dirName,
                               @RequestParam("f_name") String fName) {
-        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
-        fileOperationService.saveFile(new FileInfo(dirName, 0L,fid,location+">"+fid+"."+fName,0));
-        modelAndView.addObject("username",username);
-        modelAndView.addObject("fid",fid);
-        return modelAndView;
+//        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
+        FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0);
+        fileOperationService.saveFile(result);
+//        modelAndView.addObject("username",username);
+//        modelAndView.addObject("fid",fid);
+//        return modelAndView;
+        return result;
     }
 }
