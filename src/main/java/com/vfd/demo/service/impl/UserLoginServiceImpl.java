@@ -42,7 +42,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         }
         UserAccInfo userAccInfo = new UserAccInfo(email, password);
         Boolean addUser = userLoginMapper.addUser(userAccInfo);
-        FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"allFiles",0L,0,"",0);
+        FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"全部文件",0L,0,"",0);
         Boolean saveFile = fileOperationMapper.mkDir(fileInfo);
         if (addUser && saveFile) {
             return userAccInfo.getId();
