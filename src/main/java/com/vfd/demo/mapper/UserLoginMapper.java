@@ -36,7 +36,7 @@ public interface UserLoginMapper {
      * @param password
      * @return
      */
-    Boolean addUser(String email, String password);
+    Boolean addUser(UserAccInfo userAccInfo);
 
     /**
      * 修改密码
