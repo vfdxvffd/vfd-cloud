@@ -12,10 +12,20 @@ public class UserAccInfo {
     private Integer id;
     private String email;
     private String password;
+    private String name;
 
-    public UserAccInfo(String email, String password) {
+    public UserAccInfo(String email, String password, String name) {
         this.email = email;
         this.password = password;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Integer getId() {
