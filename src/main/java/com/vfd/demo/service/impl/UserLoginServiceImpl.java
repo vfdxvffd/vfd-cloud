@@ -1,10 +1,13 @@
 package com.vfd.demo.service.impl;
 
+import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.bean.UserAccInfo;
+import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.mapper.UserLoginMapper;
 import com.vfd.demo.service.UserLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @PackageName: com.vfd.cloud.service
@@ -18,15 +21,11 @@ public class UserLoginServiceImpl implements UserLoginService {
 
     @Autowired
     UserLoginMapper userLoginMapper;
+    @Autowired
+    FileOperationMapper fileOperationMapper;
 
 
     public Integer login(String email, String password) {
-        /*if (userLoginMapper.getUserIdByEmail(email) == null) {
-            return -1;
-        } else {
-            Integer id = userLoginMapper.getUserId(email,password);
-            return id == null? 0:id;
-        }*/
         UserAccInfo accInfo = userLoginMapper.getUserInfoByEmail(email);
         if (accInfo == null) {
             return -1;
@@ -35,12 +34,18 @@ public class UserLoginServiceImpl implements UserLoginService {
         }
     }
 
+    //0表示失败，-1表示重复
+    @Transactional
     public Integer register(String name, String email, String password) {
         if (userLoginMapper.getUserIdByEmail(email) != null) {
             return -1;
         }
-        if (userLoginMapper.addUser(email,password)) {
-            return userLoginMapper.getUserIdByEmail(email);
+        UserAccInfo userAccInfo = new UserAccInfo(email, password);
+        Boolean addUser = userLoginMapper.addUser(userAccInfo);
+        FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"所有文件",0L,0,"",0);
+        Boolean saveFile = fileOperationMapper.saveFile(fileInfo);
+        if (addUser && saveFile) {
+            return userAccInfo.getId();
         } else {
             return 0;
         }
@@ -48,7 +53,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 
     public Boolean isExist(String email) {
         Integer id = userLoginMapper.getUserIdByEmail(email);
-        return id==null? false:true;
+        return id != null;
     }
 
     public Boolean updateUserPassword (String email, String password) {
