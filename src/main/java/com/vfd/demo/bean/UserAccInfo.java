@@ -13,6 +13,11 @@ public class UserAccInfo {
     private String email;
     private String password;
 
+    public UserAccInfo(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
     public Integer getId() {
         return id;
     }
