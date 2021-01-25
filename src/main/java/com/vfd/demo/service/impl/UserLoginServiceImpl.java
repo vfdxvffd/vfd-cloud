@@ -40,7 +40,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         if (userLoginMapper.getUserIdByEmail(email) != null) {
             return -1;
         }
-        UserAccInfo userAccInfo = new UserAccInfo(email, password);
+        UserAccInfo userAccInfo = new UserAccInfo(email, password, name);
         Boolean addUser = userLoginMapper.addUser(userAccInfo);
         FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"全部文件",0L,0,"",0);
         Boolean saveFile = fileOperationMapper.mkDir(fileInfo);
