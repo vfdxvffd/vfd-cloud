@@ -173,7 +173,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <!--用户名-->
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small" th:text="${username}"></span>
+                                <span id="curr_user_name" class="mr-2 d-none d-lg-inline text-gray-600 small" th:text="${username}"></span>
                                 <img class="img-profile rounded-circle"
                                      src="/asserts/img/undraw_profile.svg">
                             </a>
@@ -317,8 +317,8 @@
                                     </tr>
                                 </tfoot>
                                 <tbody id="dir_tbody">
-                                </tbody>
-                                <tbody>
+<!--                                </tbody>
+                                <tbody>-->
                                     <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
                                             <form style="display: none" action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
@@ -353,8 +353,8 @@
                                 </tbody>
 
                                 <tbody id="doc_tbody">
-                                </tbody>
-                                <tbody>
+<!--                                </tbody>
+                                <tbody>-->
                                     <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
@@ -468,7 +468,9 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a onclick="document.getElementById('input_dir').submit();"
+                    <!--<a onclick="document.getElementById('input_dir').submit();"
+                       class="btn btn-primary" href="javascript:void(0)">Create</a>-->
+                    <a onclick="mkdir();"
                        class="btn btn-primary" href="javascript:void(0)">Create</a>
                 </div>
             </div>
@@ -496,16 +498,57 @@
 
 </body>
 <script type="text/javascript">
+
+    function mkdir() {
+        var curr_user_name = document.getElementById('curr_user_name').textContent;
+        var tbody_dir = document.getElementById('dir_tbody');
+        $.ajax({
+            type: "post",
+            url: "/mkdir",
+            data: $('#input_dir').serialize(),
+            cache: false,
+            dataType: "json",
+            success: function (result) {
+                var add_html = "<tr id=\"tr"+result.id+"\">"+
+                    "<td>"+
+                    "<form style=\"display: none\" action=\"/enterFile\" method=\"post\" id=\"enter_into_dir"+result.id+"\">" +
+                    "                <label>"+
+                    "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                    "                </label>"+
+                    "                <label>" +
+                    "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+result.id+"\">" +
+                    "                </label>" +
+                    "            </form>"+
+                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.id+");\">" +
+                    "               <p>"+result.name+"</p>" +
+                    "           </a>" +
+                    "       </td>" +
+                    "       <td>--</td>" +
+                    "       <td>" +
+                    "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                    "              onclick=\"Values("+result.id+");\" class=\"btn btn-danger btn-circle\">" +
+                    "               <i class=\"fas fa-trash\"></i>" +
+                    "           </a>" +
+                    "       </td>" +
+                    "       <td>2021/1/21 18:48</td>" +
+                    "   </tr>";
+                tbody_dir.innerHTML = add_html+tbody_dir.innerHTML;
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+
     function uploadFile() {
         document.getElementById("select_file").click();
 
     }
     //监听，当上传文件的选择文件框发生变化则上传此时框中选中的文件
     $("#select_file").change(function () {
-        //document.getElementById("upload_file").submit();
-        /*$('#upload_file').ajaxForm() {
-
-        }*/
         var formData = new FormData(document.getElementById('upload_file'));
         var tbody = document.getElementById('doc_tbody');
         $.ajax({
@@ -522,7 +565,7 @@
                     add_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+this.len+"</td>"+
-                        "<td>"+ "<a href=\"/download/ "+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                        "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
                         "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
@@ -531,7 +574,7 @@
                         "                                            </a>"+"</td>"+
                         "<td>2021/1/21 18:48</td></tr>";
                 });
-                tbody.innerHTML=add_html;
+                tbody.innerHTML=add_html + tbody.innerHTML;
             },
             xhr: function () {
                var xhr = $.ajaxSettings.xhr();
