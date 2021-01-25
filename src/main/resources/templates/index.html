@@ -20,6 +20,36 @@
     <!-- Custom styles for this template-->
     <link th:href="@{/asserts/css/sb-admin-2.min.css}" rel="stylesheet">
 
+    <style type="text/css">
+        table{
+            width:70%;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);/* 阴影 */
+            border-collapse:collapse;/* 取消表格边框 */
+            letter-spacing:1px;/* 文字缩进 */
+        }
+        table,th,tr,td{
+            border-bottom:1px solid #dedede;/* 表格横线 */
+            padding:29px;
+            text-align: center;
+        }
+        progress {
+            background-color: #56BE64;
+        }
+
+        progress::-webkit-progress-bar {
+            background: #ccc;
+        }
+
+        progress::-webkit-progress-value {
+            background: #56BE64;
+        }
+
+        percentage {
+            position: fixed;
+            left: 160px;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 </head>
 
 <body id="page-top">
@@ -192,6 +222,31 @@
                                         </span>
                             <span class="text">新建文件夹</span>
                         </a>
+
+                        <!--进度条部分(默认隐藏)-->
+                        <!--style="display: none;"-->
+                        <div class="progress-body">
+                            <div>
+                                <span style="width: 100px; display: inline-block; text-align: right">上传进度：</span>
+                                <progress></progress>
+                                <percentage>0%</percentage>
+                            </div>
+
+                            <!--<div class="progress mb-4">
+                                <div class="progress-bar" role="progressbar" style="width: 98%"
+                                     aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>-->
+
+                            <div>
+                                <span style="width: 100px; display: inline-block; text-align: right">上传速度：</span>
+                                <span style="width: 300px;" class="progress-speed">0 M/S, 0/0M</span>
+                            </div>
+                            <div>
+                                <span style="width: 100px; display: inline-block; text-align: right">上传状态：</span>
+                                <span style="width: 300px;" class="progress-info">请选择文件并点击上传文件按钮</span>
+                            </div>
+                        </div>
+
                         <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" onclick="uploadFile();">
                                         <span class="icon text-white-50">
                                             <i class="fas fa-check"></i>
@@ -241,9 +296,10 @@
                             </div>
                         </h6>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body card mb-4 py-3 border-left-primary">
                         <div class="table-responsive">
-                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <!--<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">-->
+                            <table class="table" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
                                     <tr>
                                         <th>文档名</th>
@@ -260,10 +316,12 @@
                                         <th>创建日期</th>
                                     </tr>
                                 </tfoot>
+                                <tbody id="dir_tbody">
+                                </tbody>
                                 <tbody>
                                     <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
-                                            <form action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
+                                            <form style="display: none" action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
                                                 <!--style="display: none"-->
                                                 <label>
                                                     <input style="display: none" type="text" name="username" th:value="${username}">
@@ -271,11 +329,11 @@
                                                 <label>
                                                     <input style="display: none" type="number" name="fid" th:value="${dir.getId()}">
                                                 </label>
-                                                <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
-                                                <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getId()}]]);">
-                                                    <p th:text="${dir.getName()}"></p>
-                                                </a>
                                             </form>
+                                            <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
+                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getId()}]]);">
+                                                <p th:text="${dir.getName()}"></p>
+                                            </a>
                                         </td>
                                         <!--<td th:text="${dir.getLen()}"></td>-->
                                         <td th:text="'--'"></td>         <!--文件夹长度不显示-->
@@ -292,6 +350,11 @@
                                         <!--<td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>-->
                                         <td>2021/1/21 18:48</td>
                                     </tr>
+                                </tbody>
+
+                                <tbody id="doc_tbody">
+                                </tbody>
+                                <tbody>
                                     <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
@@ -429,6 +492,8 @@
     <script th:src="@{/asserts/js/demo/chart-area-demo.js}"></script>
     <script th:src="@{/asserts/js/demo/chart-pie-demo.js}"></script>
 
+<!--    <script type="text/javascript" src="/cont-inspec/scripts/jquery.form.js"></script>-->
+
 </body>
 <script type="text/javascript">
     function uploadFile() {
@@ -437,8 +502,109 @@
     }
     //监听，当上传文件的选择文件框发生变化则上传此时框中选中的文件
     $("#select_file").change(function () {
-        document.getElementById("upload_file").submit();
+        //document.getElementById("upload_file").submit();
+        /*$('#upload_file').ajaxForm() {
+
+        }*/
+        var formData = new FormData(document.getElementById('upload_file'));
+        var tbody = document.getElementById('doc_tbody');
+        $.ajax({
+           type: "post",
+            enctype: "multipart/form-data",
+            url: "/uploadFile",
+            data: formData,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (result) {
+               var add_html = "";
+                $.each(result,function (){
+                    add_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td><p>"+this.name+"</p></td>"+
+                        "<td>"+this.len+"</td>"+
+                        "<td>"+ "<a href=\"/download/ "+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
+                        "                                            </a>"+
+                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                        "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                                <i class=\"fas fa-trash\"></i>" +
+                        "                                            </a>"+"</td>"+
+                        "<td>2021/1/21 18:48</td></tr>";
+                });
+                tbody.innerHTML=add_html;
+            },
+            xhr: function () {
+               var xhr = $.ajaxSettings.xhr();
+               if (xhr.upload) {
+                   //处理进度条的事件
+                   xhr.upload.addEventListener("progress", progressHandle, false);
+                   //加载完成的事件
+                   xhr.addEventListener("load", completeHandle, false);
+                   //加载出错的事件
+                   xhr.addEventListener("error", failedHandle, false);
+                   //加载取消的事件
+                   xhr.addEventListener("abort", canceledHandle, false);
+                   //开始显示进度条
+                   showProgress();
+                   return xhr;
+               }
+            }
+        },'json');
     });
+
+    var start = 0;
+
+    //显示进度条的函数
+    function showProgress() {
+        start = new Date().getTime();
+        $(".progress-body").css("display", "block");
+    }
+
+    //隐藏进度条的函数
+    function hideProgress() {
+        $("#select_file").val('');
+        $('.progress-body .progress-speed').html("0 M/S, 0/0M");
+        $('.progress-body percentage').html("0%");
+        $('.progress-body .progress-info').html("请选择文件并点击上传文件按钮");
+        /*$("#btnUpload").attr("disabled", false);
+        $("#uploadFile").attr("disabled", false);*/
+        //$(".progress-body").css("display", "none");
+    }
+
+    //进度条更新
+    function progressHandle(e) {
+        $('.progress-body progress').attr({value: e.loaded, max: e.total});
+        var percent = e.loaded / e.total * 100;
+        var time = ((new Date().getTime() - start) / 1000).toFixed(3);
+        if (time === 0) {
+            time = 1;
+        }
+        $('.progress-body .progress-speed').html(((e.loaded / 1024) / 1024 / time).toFixed(2) + "M/S, " + ((e.loaded / 1024) / 1024).toFixed(2) + "/" + ((e.total / 1024) / 1024).toFixed(2) + " MB. ");
+        $('.progress-body percentage').html(percent.toFixed(2) + "%");
+        if (percent === 100) {
+            $('.progress-body .progress-info').html("上传完成,后台正在处理...");
+        } else {
+            $('.progress-body .progress-info').html("文件上传中...");
+        }
+    };
+
+    //上传完成处理函数
+    function completeHandle(e) {
+        $('.progress-body .progress-info').html("上传文件完成。");
+        setTimeout(hideProgress, 2000);
+    };
+
+    //上传出错处理函数
+    function failedHandle(e) {
+        $('.progress-body .progress-info').html("上传文件出错, 服务不可用或文件过大。");
+        setTimeout(hideProgress, 2000);
+    };
+
+    //上传取消处理函数
+    function canceledHandle(e) {
+        $('.progress-body .progress-info').html("上传文件取消。");
+        setTimeout(hideProgress, 2000);
+    };
 
     function enter_into_dir(obj) {
         document.getElementById('enter_into_dir'+obj).submit();
