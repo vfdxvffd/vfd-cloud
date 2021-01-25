@@ -119,10 +119,16 @@ public class UploadFileController {
                               @RequestParam("f_name") String fName) {
 //        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
         FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0);
-        fileOperationService.saveFile(result);
+        Boolean saveFile = fileOperationService.saveFile(result);
+        if (saveFile) {
+            return result;
+        } else {
+            FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
+            fail.setId(0);
+            return fail;
+        }
 //        modelAndView.addObject("username",username);
 //        modelAndView.addObject("fid",fid);
 //        return modelAndView;
-        return result;
     }
 }
