@@ -2,6 +2,7 @@ package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.service.FileOperationService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,8 @@ public class UploadFileController {
 
     @Autowired
     FileOperationService fileOperationService;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      * 上传文件
@@ -58,6 +61,7 @@ public class UploadFileController {
                         result.add(fileInfo);
                         boolean mkdir = new File("/home/vfdxvffd/vfd-cloud/" + fileInfo.getId()).mkdirs();
                         file.transferTo(new File("/home/vfdxvffd/vfd-cloud/"+ fileInfo.getId() + "/" + file.getOriginalFilename()));
+                        rabbitTemplate.convertAndSend("log.direct","info","upload: 文件上传成功，文件id为" + fileInfo.getId());
                     }
                 }
             } catch (IOException e) {
@@ -85,11 +89,9 @@ public class UploadFileController {
     public Map<String, Object> enterFile(@RequestParam("username") String username,
                                   @RequestParam("fid") Integer fid) {
         Map<String,Object> result = new HashMap<>();
-        ModelAndView modelAndView = new ModelAndView("index");
+//        ModelAndView modelAndView = new ModelAndView("index");
         FileInfo fileInfo = fileOperationService.getFileById(fid);  //父目录对象
-        modelAndView.addObject("username",username);
-//        modelAndView.addObject("fid",fid); //文件id
-//        modelAndView.addObject("location",fileInfo.getLocation());  //位置
+//        modelAndView.addObject("username",username);
         List<FileInfo> all = fileOperationService.getFilesByFid(fid);
         List<FileInfo> dirs = new ArrayList<>();     //文件夹
         List<FileInfo> docs = new ArrayList<>();     //文档
@@ -100,8 +102,8 @@ public class UploadFileController {
                 docs.add(new FileInfo(f));
             }
         }
-        modelAndView.addObject("dirs",dirs);
-        modelAndView.addObject("docs",docs);
+//        modelAndView.addObject("dirs",dirs);
+//        modelAndView.addObject("docs",docs);
         result.put("dirs",dirs);
         result.put("docs",docs);
         String[] dirId = fileInfo.getLocation().split(">");
@@ -112,8 +114,8 @@ public class UploadFileController {
                 fileInfos.add(new FileInfo(Integer.parseInt(split[0]),split[1]));
         }
 //        fileInfos.add(fileInfo);
-        modelAndView.addObject("currentDir",fileInfo);
-        modelAndView.addObject("path",fileInfos);
+//        modelAndView.addObject("currentDir",fileInfo);
+//        modelAndView.addObject("path",fileInfos);
         result.put("currentDir",fileInfo);
         result.put("path",fileInfos);
 //        return modelAndView;
