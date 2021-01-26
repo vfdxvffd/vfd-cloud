@@ -6,6 +6,7 @@ import com.vfd.demo.service.FileOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.List;
@@ -25,7 +26,14 @@ public class FileOperationServiceImpl implements FileOperationService {
     FileOperationMapper fileOperationMapper;
 
     @Override
+    @Transactional
     public Boolean saveFile(FileInfo fileInfo) {
+        List<FileInfo> filesByFid = getFilesByFid(fileInfo.getPid());
+        for (FileInfo f:filesByFid) {
+            if (f.getName().equals(fileInfo.getName())) {
+                return false;
+            }
+        }
         return fileOperationMapper.saveFile(fileInfo);
     }
 
