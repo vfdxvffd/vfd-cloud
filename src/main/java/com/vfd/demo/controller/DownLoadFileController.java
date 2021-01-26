@@ -34,6 +34,7 @@ public class DownLoadFileController {
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         String string = new String(fileName.getBytes("gbk"),"iso8859-1");
         headers.add("Content-Disposition", "attachment;filename=" + string);
+        headers.add("Content-Length", String.valueOf(file.length()));
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
 
