@@ -479,6 +479,27 @@
         </div>
     </div>
 
+    <!--文件上传失败的错误提示-->
+    <div class="modal fade" id="fileUploadFailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalLabel">以下文件上传失败，请避免命名冲突后重试：</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="fileUploadFail">
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="javascript:void(0);" id="infoModal" style="display: none" data-toggle="modal" data-target="#fileUploadFailModal"></a>
     <!-- Bootstrap core JavaScript-->
     <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
@@ -505,6 +526,10 @@
     $('#mkdirModal').on('hide.bs.modal', function () {
         document.getElementById('input_dir').reset();
         document.getElementById('dup_dir').style.display='none';
+    });
+
+    $('#fileUploadFailModal').on('hide.bs.modal', function () {
+        document.getElementById('fileUploadFail').innerHTML="";
     });
 
     function enter_into_dir(obj) {
@@ -659,6 +684,9 @@
     $("#select_file").change(function () {
         var formData = new FormData(document.getElementById('upload_file'));
         var tbody = document.getElementById('doc_tbody');
+        var modal = document.getElementById('fileUploadFail');
+        var modal_html = "";
+        var haveErr = false;
         $.ajax({
            type: "post",
             enctype: "multipart/form-data",
@@ -670,19 +698,28 @@
             success: function (result) {
                var add_html = "";
                 $.each(result,function (){
-                    add_html += "<tr id=\"tr"+this.id+"\">"+
-                        "<td><p>"+this.name+"</p></td>"+
-                        "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
-                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
-                        "                                            </a>"+
-                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
-                        "                                                <i class=\"fas fa-trash\"></i>" +
-                        "                                            </a>"+"</td>"+
-                        "<td>2021/1/21 18:48</td></tr>";
+                    if (this.type === 0) {
+                        modal_html += "<p style=\"color: black\">[error]    "+this.name+"上传失败</p>";
+                        haveErr = true;
+                    } else {
+                        add_html += "<tr id=\"tr"+this.id+"\">"+
+                            "<td><p>"+this.name+"</p></td>"+
+                            "<td>"+getFileSize(this.len)+"</td>"+
+                            "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                            "                                                <i class=\"fas fa-download fa-sm \"></i>" +
+                            "                                            </a>"+
+                            "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                            "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                            "                                                <i class=\"fas fa-trash\"></i>" +
+                            "                                            </a>"+"</td>"+
+                            "<td>2021/1/21 18:48</td></tr>";
+                    }
                 });
                 tbody.innerHTML=add_html + tbody.innerHTML;
+                if (haveErr) {
+                    document.getElementById('fileUploadFail').innerHTML = modal_html;
+                    document.getElementById('infoModal').click();
+                }
             },
             xhr: function () {
                var xhr = $.ajaxSettings.xhr();
