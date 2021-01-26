@@ -171,21 +171,11 @@ public class AccountController {
         } else {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",login.getName());
-//            modelAndView.addObject("id",login);     //将用户id发送到index页面
+            modelAndView.addObject("id",login.getId());     //将用户id发送到index页面
             modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId())); //用户根文件夹id
             modelAndView.addObject("location","");  //位置
             List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId());    //所有文件
-            List<FileInfo> dir = new ArrayList<>();     //文件夹
-            List<FileInfo> doc = new ArrayList<>();     //文档
-            for (FileInfo fileInfo : all) {
-                if (fileInfo.getType() == 0) {
-                    dir.add(new FileInfo(fileInfo));
-                } else {
-                    doc.add(new FileInfo(fileInfo));
-                }
-            }
-            modelAndView.addObject("dirs",dir);
-            modelAndView.addObject("docs",doc);
+            getDirsAndDocs(modelAndView, all);
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
 //            fileInfos.add(new FileInfo(-1*login,"allFiles"));
             modelAndView.addObject("path",fileInfos);
@@ -193,6 +183,20 @@ public class AccountController {
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login);
         }
         return modelAndView;
+    }
+
+    public static void getDirsAndDocs(ModelAndView modelAndView, List<FileInfo> all) {
+        List<FileInfo> dir = new ArrayList<>();     //文件夹
+        List<FileInfo> doc = new ArrayList<>();     //文档
+        for (FileInfo fileInfo : all) {
+            if (fileInfo.getType() == 0) {
+                dir.add(new FileInfo(fileInfo));
+            } else {
+                doc.add(new FileInfo(fileInfo));
+            }
+        }
+        modelAndView.addObject("dirs",dir);
+        modelAndView.addObject("docs",doc);
     }
 
     /**
