@@ -25,13 +25,13 @@ public class UserLoginServiceImpl implements UserLoginService {
     FileOperationMapper fileOperationMapper;
 
 
-    public Integer login(String email, String password) {
-        UserAccInfo accInfo = userLoginMapper.getUserInfoByEmail(email);
-        if (accInfo == null) {
+    public UserAccInfo login(String email) {
+        return userLoginMapper.getUserInfoByEmail(email);
+        /*if (accInfo == null) {
             return -1;
         } else {
             return accInfo.getPassword().equals(password)?accInfo.getId():0;
-        }
+        }*/
     }
 
     //0表示失败，-1表示重复
