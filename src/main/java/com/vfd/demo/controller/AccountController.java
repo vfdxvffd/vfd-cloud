@@ -180,7 +180,7 @@ public class AccountController {
 //            fileInfos.add(new FileInfo(-1*login,"allFiles"));
             modelAndView.addObject("path",fileInfos);
             //logger.info("login:用户登陆成功，id为："+login);
-            rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login);
+            rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login.getId());
         }
         return modelAndView;
     }
