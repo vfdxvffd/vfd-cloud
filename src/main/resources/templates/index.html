@@ -61,7 +61,8 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="javascript:void(0);"
+                    th:onclick="enter_into_dir(-1*[[${id}]]);">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -73,7 +74,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="index.html">
+                <a class="nav-link" href="javascript:void(0);" th:onclick="enter_into_dir(-1*[[${id}]]);">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>全部文件</span></a>
             </li>
@@ -262,11 +263,11 @@
                             </label>
                             <label>
                                 <!--当前文件夹的id-->
-                                <input style="display: none" type="number" name="fid" th:value="${currentDir.getId()}">
+                                <input style="display: none" type="number" id="upload_fid" name="fid" th:value="${currentDir.getId()}">
                             </label>
                             <label>
                                 <!--目录的location-->
-                                <input style="display: none" type="text" name="location" th:value="${currentDir.getLocation()}">
+                                <input style="display: none" type="text" id="upload_location" name="location" th:value="${currentDir.getLocation()}">
                             </label>
                         </form>
                     </div>
@@ -275,20 +276,18 @@
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 float-left">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <div class="float-left">
+                            <div class="float-left" id="guide">
                                 <div class="float-left" th:each="pa:${path}">
-                                    <!--<div>-->
-                                        <form action="/enterFile" method="post" th:id="'enter_dir' + ${pa.getId()}">
-                                            <label>
-                                                <input style="display: none" type="text" name="username" th:value="${username}">
-                                            </label>
-                                            <label>
-                                                <input style="display: none" type="number" name="fid" th:value="${pa.getId()}">
-                                            </label>
-                                            <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_dir([[${pa.getId()}]]);">
-                                            </a> >
-                                        </form>
-                                    <!--</div>-->
+                                    <form action="/enterFile" style="display: none" method="post" th:id="'enter_dir' + ${pa.getId()}">
+                                        <label>
+                                            <input style="display: none" type="text" name="username" th:value="${username}">
+                                        </label>
+                                        <label>
+                                            <input style="display: none" type="number" name="fid" th:value="${pa.getId()}">
+                                        </label>
+                                    </form>
+                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${pa.getId()}]]);">
+                                    </a> >
                                 </div>
                                 <div class="float-left">
                                     <p th:text="'&nbsp;' + ${currentDir.getName()}"></p>
@@ -388,7 +387,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Your Website 2021</span>
+                        <span>Copyright &copy; vfdxvffd.cn 2021</span>
                     </div>
                 </div>
             </footer>
@@ -458,10 +457,10 @@
                 </div>
                 <div class="modal-body form-group">
                     <form action="/mkdir" method="POST" id="input_dir">
-                        <input style="display: none" type="text" name="username" th:value="${username}">
-                        <input style="display: none" type="number" name="fid" th:value="${currentDir.getId()}">
-                        <input style="display: none" type="text" name="location" th:value="${currentDir.getLocation()}">
-                        <input style="display: none" type="text" name="f_name" th:value="${currentDir.getName()}">
+                        <input style="display: none" type="text" id="mkdir_uname" name="username" th:value="${username}">
+                        <input style="display: none" type="number" id="mkdir_fid" name="fid" th:value="${currentDir.getId()}">
+                        <input style="display: none" type="text" id="mkdir_location" name="location" th:value="${currentDir.getLocation()}">
+                        <input style="display: none" type="text" id="mkdir_f_name" name="f_name" th:value="${currentDir.getName()}">
                         <input type="text" class="form-control form-control-user" id="inputDir" name="inputDir"
                                placeholder="dir name ...">
                     </form>
@@ -506,7 +505,99 @@
     $('#mkdirModal').on('hide.bs.modal', function () {
         document.getElementById('input_dir').reset();
         document.getElementById('dup_dir').style.display='none';
-    })
+    });
+
+    function enter_into_dir(obj) {
+         // document.getElementById('enter_into_dir'+obj).submit();
+        var curr_user_name = document.getElementById('curr_user_name').textContent;
+        var form_id = "enter_into_dir"+obj;
+        var guide_con = document.getElementById('guide');
+        var guide_html = "";
+        var dir_con = document.getElementById('dir_tbody');
+        var dir_html = "";
+        var doc_con = document.getElementById('doc_tbody');
+        var doc_html = "";
+        $.ajax({
+            type: "post",
+            url: "/enterFile",
+            data: $('#'+form_id).serialize(),
+            cache: false,
+            dataType: "json",
+            success: function (result) {
+                var pathList = result.path;
+                var dirList = result.dirs;
+                var currDir = result.currentDir;
+                var docList = result.docs;
+                //导航栏
+                $.each(pathList, function () {
+                   guide_html += "<div class=\"float-left\">"+
+                       "<form action=\"/enterFile\" style='display: none' method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
+                       "                <label>" +
+                       "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                       "                </label>" +
+                       "                <label>" +
+                       "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
+                       "                </label>" +
+                       "            </form>"+
+                       "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
+                       "                <p>"+this.name+" ></p></a>" +
+                       "</div>";
+                });
+                guide_html += "<div class=\"float-left\">" +
+                    "        <p>&nbsp;"+currDir.name+"</p>" +
+                    "    </div>";
+                guide_con.innerHTML = guide_html;
+                //文件夹
+                $.each(dirList, function () {
+                    dir_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td>"+
+                        "<form style=\"display: none\" action=\"/enterFile\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
+                        "                <label>"+
+                        "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                        "                </label>"+
+                        "                <label>" +
+                        "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
+                        "                </label>" +
+                        "            </form>"+
+                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
+                        "               <p>"+this.name+"</p>" +
+                        "           </a>" +
+                        "       </td>" +
+                        "       <td>--</td>" +
+                        "       <td>" +
+                        "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                        "              onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                        "               <i class=\"fas fa-trash\"></i>" +
+                        "           </a>" +
+                        "       </td>" +
+                        "       <td>2021/1/21 18:48</td>" +
+                        "   </tr>";
+                });
+                dir_con.innerHTML = dir_html;
+                //文件
+                $.each(docList, function () {
+                    doc_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td><p>"+this.name+"</p></td>"+
+                        "<td>"+getFileSize(this.len)+"</td>"+
+                        "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
+                        "                                            </a>"+
+                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                        "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                                <i class=\"fas fa-trash\"></i>" +
+                        "                                            </a>"+"</td>"+
+                        "<td>2021/1/21 18:48</td></tr>";
+                });
+                doc_con.innerHTML = doc_html;
+                /*更新当前页面的信息*/
+                document.getElementById('mkdir_fid').value = currDir.id;
+                document.getElementById('mkdir_location').value = currDir.location;
+                document.getElementById('mkdir_f_name').value = currDir.name;
+                document.getElementById('upload_fid').value = currDir.id;
+                document.getElementById('upload_location').value = currDir.location;
+            }
+        });
+    }
 
     function mkdir() {
         var curr_user_name = document.getElementById('curr_user_name').textContent;
@@ -581,7 +672,7 @@
                 $.each(result,function (){
                     add_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
-                        "<td>"+this.len+"</td>"+
+                        "<td>"+getFileSize(this.len)+"</td>"+
                         "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
@@ -666,13 +757,11 @@
         setTimeout(hideProgress, 2000);
     };
 
-    function enter_into_dir(obj) {
-        document.getElementById('enter_into_dir'+obj).submit();
-    }
 
-    function enter_dir(obj) {
+
+/*    function enter_dir(obj) {
         document.getElementById('enter_dir'+obj).submit();
-    }
+    }*/
 
     function Values(ID) {
         $('#deleteFileId').val(ID);
@@ -703,6 +792,27 @@
                 return false;
             }
         });
+    }
+
+    function getFileSize(fileByte) {
+        var fileSizeByte = fileByte;
+        var fileSizeMsg = "";
+        if(fileSizeByte < 1024){
+            fileSizeMsg = fileSizeByte  + "B";
+        }else if (fileSizeByte < 1048576) {
+            fileSizeMsg = window.parseFloat(((fileSizeByte / 1024)).toFixed(2)) + "KB";
+        }else if (fileSizeByte === 1048576) {
+            fileSizeMsg = "1MB";
+        }else if (fileSizeByte > 1048576 && fileSizeByte < 1073741824){
+            fileSizeMsg = window.parseFloat(((fileSizeByte / (1024 * 1024))).toFixed(2)) + "MB";
+        }else if (fileSizeByte > 1048576 && fileSizeByte === 1073741824){
+            fileSizeMsg = "1GB";
+        }else if (fileSizeByte > 1073741824 && fileSizeByte < 1099511627776){
+            fileSizeMsg = window.parseFloat(((fileSizeByte / (1024 * 1024 * 1024))).toFixed(2)) + "GB";
+        }else{
+            fileSizeMsg = "文件超过1TB";
+        }
+        return fileSizeMsg;
     }
 </script>
 
