@@ -3,6 +3,7 @@ package com.vfd.demo.service.impl;
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Autowired
     FileOperationMapper fileOperationMapper;
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
     @Override
     @Transactional
     public Boolean saveFile(FileInfo fileInfo) {
@@ -34,7 +38,13 @@ public class FileOperationServiceImpl implements FileOperationService {
                 return false;
             }
         }
-        return fileOperationMapper.saveFile(fileInfo);
+        Boolean saveFile = fileOperationMapper.saveFile(fileInfo);
+        if (saveFile) {
+            return true;
+        } else {
+            rabbitTemplate.convertAndSend("log.direct","error",this.getClass()+":文件信息录入数据库发生错误:" + fileInfo);
+            return false;
+        }
     }
 
     @Override
@@ -55,12 +65,13 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Async
     @Override
     public void deleteFileOnDiskById(Integer id) {
-        System.out.println("id = " + id + ":正在磁盘删除文件");
         File file = new File("/home/vfdxvffd/vfd-cloud/" + id);
         if (file.exists()) {
             boolean delete1 = Objects.requireNonNull(file.listFiles())[0].delete();
             boolean delete = file.delete();
-            System.out.println("文件删除" + (delete1 && delete));
+            if (!(delete1 && delete)) {
+                rabbitTemplate.convertAndSend("log.direct","error","deleteFileOnDiskById:文件从硬盘删除发生错误:文件id为:" + id);
+            }
         }
     }
 }
