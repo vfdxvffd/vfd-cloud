@@ -1,5 +1,7 @@
 package com.vfd.demo.service;
 
+import com.vfd.demo.bean.UserAccInfo;
+
 /**
  * @PackageName: com.vfd.demo.service
  * @InterfaceName: UserLoginService
@@ -12,10 +14,9 @@ public interface UserLoginService {
     /**
      * 用户登陆的检查
      * @param email
-     * @param password
-     * @return -1表示用户不存在，0表示密码错误，正数表示用户id
+     * @return 根据用户登陆邮箱返回用户信息
      */
-    Integer login(String email, String password);
+    UserAccInfo login(String email);
 
     /**
      * 用户注册
