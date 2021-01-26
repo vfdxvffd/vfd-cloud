@@ -13,8 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @PackageName: com.vfd.demo.controller
@@ -76,9 +75,11 @@ public class UploadFileController {
      modelAndView.addObject("files",new File("/
      */
     //通过文件夹的id进入某个文件夹fid
+    @ResponseBody
     @PostMapping("/enterFile")
-    public ModelAndView enterFile(@RequestParam("username") String username,
+    public Map<String, Object> enterFile(@RequestParam("username") String username,
                                   @RequestParam("fid") Integer fid) {
+        Map<String,Object> result = new HashMap<>();
         ModelAndView modelAndView = new ModelAndView("index");
         FileInfo fileInfo = fileOperationService.getFileById(fid);  //父目录对象
         modelAndView.addObject("username",username);
@@ -96,6 +97,8 @@ public class UploadFileController {
         }
         modelAndView.addObject("dirs",dirs);
         modelAndView.addObject("docs",docs);
+        result.put("dirs",dirs);
+        result.put("docs",docs);
         String[] dirId = fileInfo.getLocation().split(">");
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
         for (String dir:dirId) {
@@ -106,7 +109,10 @@ public class UploadFileController {
 //        fileInfos.add(fileInfo);
         modelAndView.addObject("currentDir",fileInfo);
         modelAndView.addObject("path",fileInfos);
-        return modelAndView;
+        result.put("currentDir",fileInfo);
+        result.put("path",fileInfos);
+//        return modelAndView;
+        return result;
     }
 
 
