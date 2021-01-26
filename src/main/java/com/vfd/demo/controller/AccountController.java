@@ -1,6 +1,7 @@
 package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.bean.UserAccInfo;
 import com.vfd.demo.exception.VerificationCodeLengthException;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
@@ -158,22 +159,22 @@ public class AccountController {
     public ModelAndView login(@RequestParam("exampleInputEmail") String exampleInputEmail,
                         @RequestParam("exampleInputPassword") String exampleInputPassword) {
         ModelAndView modelAndView = new ModelAndView("login");
-        Integer login = userLoginService.login(exampleInputEmail, exampleInputPassword);
-        if (login == -1) {
+        UserAccInfo login = userLoginService.login(exampleInputEmail);
+        if (login == null) {
             modelAndView.addObject("err","用户不存在");
             //logger.info("login:一个不存在的用户登陆，email:" + exampleInputEmail);
             rabbitTemplate.convertAndSend("log.direct","info","login:一个不存在的用户登陆，email:" + exampleInputEmail);
-        } else if (login == 0) {
+        } else if (!login.getPassword().equals(exampleInputPassword)) {
             modelAndView.addObject("err","密码错误");
             //logger.info("login:用户登陆密码错误,email:" + exampleInputEmail);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆密码错误,email:" + exampleInputEmail);
         } else {
             modelAndView = new ModelAndView("index");
-            modelAndView.addObject("username",exampleInputEmail);
+            modelAndView.addObject("username",login.getName());
 //            modelAndView.addObject("id",login);     //将用户id发送到index页面
-            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login)); //用户根文件夹id
+            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId())); //用户根文件夹id
             modelAndView.addObject("location","");  //位置
-            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login);    //所有文件
+            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId());    //所有文件
             List<FileInfo> dir = new ArrayList<>();     //文件夹
             List<FileInfo> doc = new ArrayList<>();     //文档
             for (FileInfo fileInfo : all) {
