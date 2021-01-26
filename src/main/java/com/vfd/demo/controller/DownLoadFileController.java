@@ -1,5 +1,7 @@
 package com.vfd.demo.controller;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +25,9 @@ import java.util.Objects;
 @Controller
 public class DownLoadFileController {
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
     @RequestMapping("/download/{id}")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("id") Integer id) throws IOException {
         System.out.println(id);
@@ -37,6 +42,8 @@ public class DownLoadFileController {
         headers.add("Content-Length", String.valueOf(file.length()));
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
+
+        rabbitTemplate.convertAndSend("log.direct","info","download: 文件id为 " + id + "的文件下载");
 
         return ResponseEntity
                 .ok()
