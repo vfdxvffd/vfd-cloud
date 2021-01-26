@@ -49,8 +49,13 @@ public class UploadFileController {
                 for (MultipartFile file:files) {
                     if (!file.isEmpty()) {
                         FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1);
+                        Boolean saveFile = fileOperationService.saveFile(fileInfo);
+                        if (!saveFile) {        //往数据库添加失败
+                            fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
+                            result.add(fileInfo);
+                            continue;
+                        }
                         result.add(fileInfo);
-                        fileOperationService.saveFile(fileInfo);
                         boolean mkdir = new File("/home/vfdxvffd/vfd-cloud/" + fileInfo.getId()).mkdirs();
                         file.transferTo(new File("/home/vfdxvffd/vfd-cloud/"+ fileInfo.getId() + "/" + file.getOriginalFilename()));
                     }
