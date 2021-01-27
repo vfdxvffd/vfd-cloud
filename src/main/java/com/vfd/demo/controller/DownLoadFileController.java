@@ -32,7 +32,7 @@ public class DownLoadFileController {
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("id") Integer id) throws IOException {
         System.out.println(id);
         //读取文件
-        File file = Objects.requireNonNull(new File("/home/vfdxvffd/vfd-cloud/" + id).listFiles())[0];
+        File file = Objects.requireNonNull(new File(UploadFileController.PROJECT_DIR + id).listFiles())[0];
         String fileName = file.getName();
         //设置响应头
         HttpHeaders headers = new HttpHeaders();
