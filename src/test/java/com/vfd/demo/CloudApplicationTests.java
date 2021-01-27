@@ -1,6 +1,9 @@
 package com.vfd.demo;
 
+import com.vfd.demo.bean.UserAccInfo;
 import com.vfd.demo.service.RedisService;
+import com.vfd.demo.service.UserLoginService;
+import com.vfd.demo.service.impl.UserLoginServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +25,9 @@ class CloudApplicationTests {
 
     @Autowired
     RedisService redisService;
+
+    @Autowired
+    UserLoginService userLoginService;
 
     /**
      * 发送简单邮件
@@ -62,6 +68,18 @@ class CloudApplicationTests {
         list.add(3);
         //redisService.set("test",new com.vfd.demo.bean.Test("a","string",3,true,list),30);
         System.out.println(redisService.get("test"));
+    }
+
+    @Test
+    public void testSpeed() {
+        long start = System.currentTimeMillis();
+//        UserAccInfo login = userLoginService.login("2201986113@qq.com");
+        userLoginService.isExist("2201986113@qq.com");
+//        System.out.println(login);
+        long end = System.currentTimeMillis();
+        System.out.println("==="+start);
+        System.out.println("==="+end);
+        System.out.println("==="+(end-start));
     }
 
 }
