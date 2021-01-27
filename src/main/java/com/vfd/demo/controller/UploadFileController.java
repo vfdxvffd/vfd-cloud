@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +24,8 @@ import java.util.*;
  */
 @Controller
 public class UploadFileController {
+
+    public static String PROJECT_DIR = "/home/ubuntu/vfd-cloud/";
 
     @Autowired
     FileOperationService fileOperationService;
@@ -59,8 +60,8 @@ public class UploadFileController {
                             continue;
                         }
                         result.add(fileInfo);
-                        boolean mkdir = new File("/home/vfdxvffd/vfd-cloud/" + fileInfo.getId()).mkdirs();
-                        file.transferTo(new File("/home/vfdxvffd/vfd-cloud/"+ fileInfo.getId() + "/" + file.getOriginalFilename()));
+                        boolean mkdir = new File(PROJECT_DIR + fileInfo.getId()).mkdirs();
+                        file.transferTo(new File(PROJECT_DIR + fileInfo.getId() + "/" + file.getOriginalFilename()));
                         rabbitTemplate.convertAndSend("log.direct","info","upload: 文件上传成功，文件id为" + fileInfo.getId());
                     }
                 }
