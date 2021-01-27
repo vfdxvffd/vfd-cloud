@@ -1,6 +1,7 @@
 package com.vfd.demo.service.impl;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.controller.UploadFileController;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -65,7 +66,7 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Async
     @Override
     public void deleteFileOnDiskById(Integer id) {
-        File file = new File("/home/vfdxvffd/vfd-cloud/" + id);
+        File file = new File(UploadFileController.PROJECT_DIR + id);
         if (file.exists()) {
             boolean delete1 = Objects.requireNonNull(file.listFiles())[0].delete();
             boolean delete = file.delete();
