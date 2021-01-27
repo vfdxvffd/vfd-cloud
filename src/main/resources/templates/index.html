@@ -44,10 +44,7 @@
             background: #56BE64;
         }
 
-        percentage {
-            position: fixed;
 
-        }
     </style>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 </head>
@@ -97,12 +94,12 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">文件类型:</h6>
-                        <a class="collapse-item" href="buttons.html">文档</a>
-                        <a class="collapse-item" href="cards.html">图片</a>
-                        <a class="collapse-item" href="cards.html">视频</a>
-                        <a class="collapse-item" href="cards.html">音频</a>
-                        <a class="collapse-item" href="cards.html">种子</a>
-                        <a class="collapse-item" href="cards.html">其他</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">文档</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">图片</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">视频</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">音频</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">种子</a>
+                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">其他</a>
                     </div>
                 </div>
             </li>
@@ -181,15 +178,15 @@
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                  aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
                                 </a>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Settings
                                 </a>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Activity Log
                                 </a>
@@ -409,15 +406,17 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">In Plan</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <!--Select "Logout" below if you are ready to end your current session.-->
+                <div class="modal-body">此功能正在加紧开发中...</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
+                    <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
                 </div>
             </div>
         </div>
