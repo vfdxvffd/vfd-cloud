@@ -11,12 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.*;
 
 /**
@@ -148,6 +147,26 @@ public class AccountController {
         }
         return modelAndView;
     }
+    
+
+    @GetMapping("/login")
+    public ModelAndView login(HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("loginUserId");
+        String userName = (String) session.getAttribute("loginUserName");
+        if (userId == null || userName == null) {
+            return new ModelAndView("redirect:/");
+        }
+        ModelAndView modelAndView = new ModelAndView("index");
+        modelAndView.addObject("username",userName);
+        modelAndView.addObject("id",userId);     //将用户id发送到index页面
+        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId)); //用户根文件夹id
+        modelAndView.addObject("location","");  //位置
+        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId);    //所有文件
+        getDirsAndDocs(modelAndView, all);
+        ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        modelAndView.addObject("path",fileInfos);
+        return modelAndView;
+    }
 
     /**
      * 用户登陆
@@ -155,9 +174,10 @@ public class AccountController {
      * @param exampleInputPassword
      * @return
      */
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public ModelAndView login(@RequestParam("exampleInputEmail") String exampleInputEmail,
-                        @RequestParam("exampleInputPassword") String exampleInputPassword) {
+                              @RequestParam("exampleInputPassword") String exampleInputPassword,
+                              HttpSession session) {
         ModelAndView modelAndView = new ModelAndView("login");
         UserAccInfo login = userLoginService.login(exampleInputEmail);
         if (login == null) {
@@ -179,6 +199,8 @@ public class AccountController {
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
 //            fileInfos.add(new FileInfo(-1*login,"allFiles"));
             modelAndView.addObject("path",fileInfos);
+            session.setAttribute("loginUserId",login.getId());
+            session.setAttribute("loginUserName",login.getName());
             //logger.info("login:用户登陆成功，id为："+login);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login.getId());
         }
