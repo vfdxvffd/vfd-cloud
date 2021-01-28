@@ -42,6 +42,7 @@ public class AccountConsumer {
     public void saveIntoCache (Map<String, String> map) {
         //redisService.set(email+":verificationCode",verificationCode,60);
         redisService.set(map.get("key"),map.get("val"),Integer.parseInt(map.get("time")));
+        logger.info("redis存入缓存成功，缓存内容：" + map.entrySet());
     }
 
     //删除缓存中的验证码或者UUID
@@ -54,6 +55,7 @@ public class AccountConsumer {
     })
     public void delFromCache (Map<String, String> map) {
         redisService.del(map.get("del"));
+        logger.info("redis缓存删除成功，删除的信息：" + map.entrySet());
     }
 
     //记录日志信息
@@ -82,6 +84,7 @@ public class AccountConsumer {
         } else {
             sendMessage.sendMeg(map.get("source_email"),map.get("dest_email"),map.get("title"),map.get("context"));
         }
+        logger.info("邮件发送成功，邮件内容如下：" + map.entrySet());
     }
 
     @RabbitListener(queues = {"test"})
