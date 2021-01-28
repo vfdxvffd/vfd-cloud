@@ -344,7 +344,7 @@
                                             </a>
                                         </td>
                                         <!--<td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>-->
-                                        <td>2021/1/21 18:48</td>
+                                        <td th:text="${dir.getTime()}"></td>
                                     </tr>
                                 </tbody>
 
@@ -370,7 +370,7 @@
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
-                                        <td>2021/1/21 18:48</td>
+                                        <td th:text="${doc.getTime()}"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -594,7 +594,7 @@
                         "               <i class=\"fas fa-trash\"></i>" +
                         "           </a>" +
                         "       </td>" +
-                        "       <td>2021/1/21 18:48</td>" +
+                        "       <td>"+ this.time +"</td>" +
                         "   </tr>";
                 });
                 dir_con.innerHTML = dir_html;
@@ -610,7 +610,7 @@
                         "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
                         "                                                <i class=\"fas fa-trash\"></i>" +
                         "                                            </a>"+"</td>"+
-                        "<td>2021/1/21 18:48</td></tr>";
+                        "<td>"+ this.time +"</td></tr>";
                 });
                 doc_con.innerHTML = doc_html;
                 /*更新当前页面的信息*/
@@ -659,7 +659,7 @@
                     "               <i class=\"fas fa-trash\"></i>" +
                     "           </a>" +
                     "       </td>" +
-                    "       <td>2021/1/21 18:48</td>" +
+                    "       <td>"+ result.time +"</td>" +
                     "   </tr>";
                 $('#mkdirModal').modal('hide');
                 //document.getElementById('input_dir').reset();
@@ -711,7 +711,7 @@
                             "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
                             "                                                <i class=\"fas fa-trash\"></i>" +
                             "                                            </a>"+"</td>"+
-                            "<td>2021/1/21 18:48</td></tr>";
+                            "<td>"+ this.time +"</td></tr>";
                     }
                 });
                 tbody.innerHTML=add_html + tbody.innerHTML;
