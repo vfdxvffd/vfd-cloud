@@ -1,7 +1,11 @@
 package com.vfd.demo.bean;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.util.Date;
 
 /**
  * @PackageName: com.vfd.demo.bean
@@ -18,6 +22,8 @@ public class FileInfo {
     private Integer pid;        //文件父目录id
     private String location;    //文件路径
     private Integer type;       //文件类型
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Timestamp time;          //文件上传时间
 
     public FileInfo() {
     }
@@ -29,6 +35,7 @@ public class FileInfo {
         this.pid = fileInfo.getPid();
         this.location = fileInfo.getLocation();
         this.type = fileInfo.getType();
+        this.time = fileInfo.getTime();
     }
 
     public FileInfo(Integer id, String name) {
@@ -36,21 +43,23 @@ public class FileInfo {
         this.name = name;
     }
 
-    public FileInfo(String name, Long len, Integer pid, String location, Integer type) {
+    public FileInfo(String name, Long len, Integer pid, String location, Integer type, Timestamp time) {
         this.name = name;
         this.len = len;
         this.pid = pid;
         this.location = location;
         this.type = type;
+        this.time = time;
     }
 
-    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type) {
+    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type, Timestamp time) {
         this.id = id;
         this.name = name;
         this.len = len;
         this.pid = pid;
         this.location = location;
         this.type = type;
+        this.time = time;
     }
 
     @Override
@@ -62,7 +71,16 @@ public class FileInfo {
                 ", pid=" + pid +
                 ", location='" + location + '\'' +
                 ", type=" + type +
+                ", time=" + time +
                 '}';
+    }
+
+    public Timestamp getTime() {
+        return time;
+    }
+
+    public void setTime(Timestamp time) {
+        this.time = time;
     }
 
     public Integer getId() {

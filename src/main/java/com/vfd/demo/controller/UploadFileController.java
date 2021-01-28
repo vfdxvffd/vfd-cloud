@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -25,7 +26,7 @@ import java.util.*;
 @Controller
 public class UploadFileController {
 
-    public static String PROJECT_DIR = "/home/ubuntu/vfd-cloud/";
+    public static String PROJECT_DIR = "/home/vfdxvffd/vfd-cloud/";
 
     @Autowired
     FileOperationService fileOperationService;
@@ -52,7 +53,7 @@ public class UploadFileController {
             try {
                 for (MultipartFile file:files) {
                     if (!file.isEmpty()) {
-                        FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1);
+                        FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1,new Timestamp(new Date().getTime()));
                         Boolean saveFile = fileOperationService.saveFile(fileInfo);
                         if (!saveFile) {        //往数据库添加失败
                             fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
@@ -132,7 +133,7 @@ public class UploadFileController {
                               @RequestParam("inputDir") String dirName,
                               @RequestParam("f_name") String fName) {
 //        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
-        FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0);
+        FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0, new Timestamp(new Date().getTime()));
         Boolean saveFile = fileOperationService.saveFile(result);
         if (saveFile) {
             return result;

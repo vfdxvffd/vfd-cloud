@@ -6,14 +6,14 @@
 <!--namespace:名称空间，写接口的全类名，相当于告诉Mybatis这个配置文件是实现哪个接口的-->
 <mapper namespace="com.vfd.demo.mapper.FileOperationMapper">
     <insert id="saveFile" useGeneratedKeys="true" keyProperty="id">
-        insert into file (`name`,len,pid,location,`type`)
-            values (#{name}, #{len}, #{pid}, #{location}, #{type})
+        insert into file (`name`,len,pid,location,`type`,`time`)
+            values (#{name}, #{len}, #{pid}, #{location}, #{type}, #{time})
     </insert>
 
     <!--Boolean mkDir(FileInfo fileInfo);-->
     <insert id="mkDir">
-        insert into file (id,`name`,len,pid,location,`type`)
-        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type})
+        insert into file (id,`name`,len,pid,location,`type`,`time`)
+        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type},#{time})
     </insert>
 
     <!--List<FileInfo> getFilesByFid(Integer fid);-->

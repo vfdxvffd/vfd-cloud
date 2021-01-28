@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 /**
  * @PackageName: com.vfd.cloud.service
  * @ClassName: UserLoginService
@@ -42,7 +45,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         }
         UserAccInfo userAccInfo = new UserAccInfo(email, password, name);
         Boolean addUser = userLoginMapper.addUser(userAccInfo);
-        FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"全部文件",0L,0,"",0);
+        FileInfo fileInfo = new FileInfo(-1*userAccInfo.getId(),"全部文件",0L,0,"",0,new Timestamp(new Date().getTime()));
         Boolean saveFile = fileOperationMapper.mkDir(fileInfo);
         if (addUser && saveFile) {
             return userAccInfo.getId();
