@@ -86,9 +86,4 @@ public class AccountConsumer {
         }
         logger.info("邮件发送成功，邮件内容如下：" + map.entrySet());
     }
-
-    @RabbitListener(queues = {"test"})
-    public void test(String msg) {
-        System.out.println(msg);
-    }
 }
