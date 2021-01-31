@@ -222,8 +222,7 @@
                         </a>
 
                         <!--进度条部分(默认隐藏)-->
-                        <!--style="display: none;"-->
-                        <div class="progress-body">
+                        <div style="display: none" class="progress-body">
                             <div>
                                 <span style="width: 100px; display: inline-block; text-align: right">上传进度：</span>
                                 <progress></progress>
@@ -252,19 +251,23 @@
                             <span class="text">上传文件</span>
                         </a>
 
-                        <form style="display: none" id="upload_file" action="/uploadFile" method="post" enctype="multipart/form-data">
-                            <input style="display: none" type="file" id="select_file" name="select_file" multiple/><br/>
+                        <form id="upload_file" style="display: none" action="/uploadFile" method="post" enctype="multipart/form-data">
+                            <!--style="display: none"-->
+                            <input type="file" id="select_file" name="select_file" multiple/><br/>
                             <label>
                                 <!--当前登陆用户的id-->
-                                <input style="display: none" type="text" name="username" th:value="${username}">
+                                <!--style="display: none" -->
+                                <input type="text" name="id" th:value="${id}">
                             </label>
                             <label>
                                 <!--当前文件夹的id-->
-                                <input style="display: none" type="number" id="upload_fid" name="fid" th:value="${currentDir.getId()}">
+                                <!--style="display: none" -->
+                                <input type="number" id="upload_fid" name="fid" th:value="${currentDir.getId()}">
                             </label>
                             <label>
                                 <!--目录的location-->
-                                <input style="display: none" type="text" id="upload_location" name="location" th:value="${currentDir.getLocation()}">
+                                <!--style="display: none" -->
+                                <input type="text" id="upload_location" name="location" th:value="${currentDir.getLocation()}">
                             </label>
                         </form>
                     </div>
@@ -277,10 +280,12 @@
                                 <div class="float-left" th:each="pa:${path}">
                                     <form action="/enterFile" style="display: none" method="post" th:id="'enter_dir' + ${pa.getId()}">
                                         <label>
-                                            <input style="display: none" type="text" name="username" th:value="${username}">
+                                            <!-- style="display: none"-->
+                                            <input type="text" name="id" th:value="${id}">
                                         </label>
                                         <label>
-                                            <input style="display: none" type="number" name="fid" th:value="${pa.getId()}">
+                                            <!--style="display: none" -->
+                                            <input type="number" name="fid" th:value="${pa.getId()}">
                                         </label>
                                     </form>
                                     <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${pa.getId()}]]);">
@@ -317,13 +322,14 @@
                                 <tbody>-->
                                     <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
-                                            <form style="display: none" action="/enterFile" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
-                                                <!--style="display: none"-->
+                                            <form action="/enterFile" style="display: none" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
                                                 <label>
-                                                    <input style="display: none" type="text" name="username" th:value="${username}">
+                                                    <!--style="display: none"-->
+                                                    <input type="number" name="id" th:value="${id}">
                                                 </label>
                                                 <label>
-                                                    <input style="display: none" type="number" name="fid" th:value="${dir.getId()}">
+                                                    <!--style="display: none" -->
+                                                    <input type="number" name="fid" th:value="${dir.getId()}">
                                                 </label>
                                             </form>
                                             <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
@@ -339,12 +345,12 @@
                                             </a>-->
 
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
-                                               th:onclick="Values([[${dir.getId()}]]);" class="btn btn-danger btn-circle">
+                                               th:onclick="Values([[${dir.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
                                         <!--<td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>-->
-                                        <td th:text="${dir.getTime()}"></td>
+                                        <td th:text="${dir.gainTime()}"></td>
                                     </tr>
                                 </tbody>
 
@@ -366,11 +372,11 @@
                                                 <i class="fas fa-trash"></i>
                                             </a>-->
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
-                                               th:onclick="Values([[${doc.getId()}]]);" class="btn btn-danger btn-circle">
+                                               th:onclick="Values([[${doc.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
-                                        <td th:text="${doc.getTime()}"></td>
+                                        <td th:text="${doc.gainTime()}"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -435,9 +441,11 @@
                 </div>
                 <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
                 <input type="hidden" id="deleteFileId" name="deleteFileId">
+                <input type="hidden" id="deleteFileOwnerId" name="deleteFileOwnerId">
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value)">Confirm</a>
+                    <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value,
+                                                                            document.getElementById('deleteFileOwnerId').value)">Confirm</a>
                 </div>
             </div>
         </div>
@@ -456,7 +464,7 @@
                 </div>
                 <div class="modal-body form-group">
                     <form action="/mkdir" method="POST" id="input_dir">
-                        <input style="display: none" type="text" id="mkdir_uname" name="username" th:value="${username}">
+                        <input style="display: none" type="number" id="mkdir_uname" name="id" th:value="${id}">
                         <input style="display: none" type="number" id="mkdir_fid" name="fid" th:value="${currentDir.getId()}">
                         <input style="display: none" type="text" id="mkdir_location" name="location" th:value="${currentDir.getLocation()}">
                         <input style="display: none" type="text" id="mkdir_f_name" name="f_name" th:value="${currentDir.getName()}">
@@ -553,14 +561,15 @@
                 var currDir = result.currentDir;
                 var docList = result.docs;
                 //导航栏
+                //style="display: none"
                 $.each(pathList, function () {
                    guide_html += "<div class=\"float-left\">"+
-                       "<form action=\"/enterFile\" style='display: none' method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
+                       "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
                        "                <label>" +
-                       "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                       "                    <input type=\"number\" name=\"id\" value=\""+this.owner+"\">" +
                        "                </label>" +
                        "                <label>" +
-                       "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
+                       "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
                        "                </label>" +
                        "            </form>"+
                        "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
@@ -572,15 +581,16 @@
                     "    </div>";
                 guide_con.innerHTML = guide_html;
                 //文件夹
+                //style="display: none"
                 $.each(dirList, function () {
                     dir_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td>"+
-                        "<form style=\"display: none\" action=\"/enterFile\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
+                        "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
                         "                <label>"+
-                        "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                        "                    <input type=\"number\" name=\"id\" value=\""+this.owner+"\">" +
                         "                </label>"+
                         "                <label>" +
-                        "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
+                        "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
                         "                </label>" +
                         "            </form>"+
                         "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
@@ -590,7 +600,7 @@
                         "       <td>--</td>" +
                         "       <td>" +
                         "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "              onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                        "              onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
                         "               <i class=\"fas fa-trash\"></i>" +
                         "           </a>" +
                         "       </td>" +
@@ -607,7 +617,7 @@
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
                         "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
                         "                                                <i class=\"fas fa-trash\"></i>" +
                         "                                            </a>"+"</td>"+
                         "<td>"+ this.time +"</td></tr>";
@@ -638,14 +648,15 @@
                     document.getElementById('dup_dir').style.color='red';
                     return false;
                 }
+                //style="display: none"
                 var add_html = "<tr id=\"tr"+result.id+"\">"+
                     "<td>"+
-                    "<form style=\"display: none\" action=\"/enterFile\" method=\"post\" id=\"enter_into_dir"+result.id+"\">" +
+                    "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+result.id+"\">" +
                     "                <label>"+
-                    "                    <input style=\"display: none\" type=\"text\" name=\"username\" value=\""+curr_user_name+"\">" +
+                    "                    <input type=\"number\" name=\"id\" value=\""+result.owner+"\">" +
                     "                </label>"+
                     "                <label>" +
-                    "                    <input style=\"display: none\" type=\"number\" name=\"fid\" value=\""+result.id+"\">" +
+                    "                    <input type=\"number\" name=\"fid\" value=\""+result.id+"\">" +
                     "                </label>" +
                     "            </form>"+
                     "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.id+");\">" +
@@ -655,7 +666,7 @@
                     "       <td>--</td>" +
                     "       <td>" +
                     "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                    "              onclick=\"Values("+result.id+");\" class=\"btn btn-danger btn-circle\">" +
+                    "              onclick=\"Values("+result.id+","+result.owner+");\" class=\"btn btn-danger btn-circle\">" +
                     "               <i class=\"fas fa-trash\"></i>" +
                     "           </a>" +
                     "       </td>" +
@@ -708,7 +719,7 @@
                             "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                             "                                            </a>"+
                             "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                            "                                               onclick=\"Values("+this.id+");\" class=\"btn btn-danger btn-circle\">" +
+                            "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
                             "                                                <i class=\"fas fa-trash\"></i>" +
                             "                                            </a>"+"</td>"+
                             "<td>"+ this.time +"</td></tr>";
@@ -799,12 +810,13 @@
         document.getElementById('enter_dir'+obj).submit();
     }*/
 
-    function Values(ID) {
+    function Values(ID, owner) {
         $('#deleteFileId').val(ID);
+        $('#deleteFileOwnerId').val(owner);
     }
 
     //删除文件时利用ajax做异步，id为要删除的文件的id
-    function delete_file(id) {
+    function delete_file(id, owner) {
         $('#deleteModal').modal('hide');
         var tr = document.getElementById("tr" + id);
         $.ajax( {
@@ -813,7 +825,7 @@
             async: false,        //异步下载
             contentType: "application/json; charset=utf-8",
             dataType: "text",
-            data: {id: id},
+            data: {id: id, owner: owner},
             success: function (result) {
                 if (result === "success") {
                     tr.style.display="none";
