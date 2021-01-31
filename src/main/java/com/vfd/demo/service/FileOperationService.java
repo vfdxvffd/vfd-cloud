@@ -25,20 +25,20 @@ public interface FileOperationService {
      * @param fid
      * @return
      */
-    List<FileInfo> getFilesByFid(Integer fid);
+    List<FileInfo> getFilesByFid(Integer fid, Integer owner);
 
     /**
      * 通过id获得location和名字
      * @param id
      * @return
      */
-    FileInfo getFileById(Integer id);
+    FileInfo getFileById(Integer id, Integer owner);
 
     /**
      * 通过id删除某个文件
      * @param id
      */
-    Boolean deleteFileById(Integer id);
+    Boolean deleteFileById(Integer id, Integer owner);
 
     /**
      * 真正在磁盘上删除文件
