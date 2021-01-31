@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -24,6 +25,7 @@ public class FileInfo {
     private Integer type;       //文件类型
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp time;          //文件上传时间
+    private int owner;          //拥有者的id
 
     public FileInfo() {
     }
@@ -36,23 +38,27 @@ public class FileInfo {
         this.location = fileInfo.getLocation();
         this.type = fileInfo.getType();
         this.time = fileInfo.getTime();
+        this.owner = fileInfo.getOwner();
+
     }
 
-    public FileInfo(Integer id, String name) {
+    public FileInfo(Integer id, String name, Integer owner) {
         this.id = id;
         this.name = name;
+        this.owner = owner;
     }
 
-    public FileInfo(String name, Long len, Integer pid, String location, Integer type, Timestamp time) {
+    public FileInfo(String name, Long len, Integer pid, String location, Integer type, Timestamp time, int owner) {
         this.name = name;
         this.len = len;
         this.pid = pid;
         this.location = location;
         this.type = type;
         this.time = time;
+        this.owner = owner;
     }
 
-    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type, Timestamp time) {
+    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type, Timestamp time, int owner) {
         this.id = id;
         this.name = name;
         this.len = len;
@@ -60,6 +66,7 @@ public class FileInfo {
         this.location = location;
         this.type = type;
         this.time = time;
+        this.owner = owner;
     }
 
     @Override
@@ -72,11 +79,25 @@ public class FileInfo {
                 ", location='" + location + '\'' +
                 ", type=" + type +
                 ", time=" + time +
+                ", owner=" + owner +
                 '}';
+    }
+
+    public int getOwner() {
+        return owner;
+    }
+
+    public void setOwner(int owner) {
+        this.owner = owner;
     }
 
     public Timestamp getTime() {
         return time;
+    }
+
+    public String gainTime() {
+        SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return simpleDateFormat.format(new Date(this.time.getTime()));
     }
 
     public void setTime(Timestamp time) {
