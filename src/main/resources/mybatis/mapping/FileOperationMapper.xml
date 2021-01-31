@@ -6,28 +6,28 @@
 <!--namespace:名称空间，写接口的全类名，相当于告诉Mybatis这个配置文件是实现哪个接口的-->
 <mapper namespace="com.vfd.demo.mapper.FileOperationMapper">
     <insert id="saveFile" useGeneratedKeys="true" keyProperty="id">
-        insert into file (`name`,len,pid,location,`type`,`time`)
-            values (#{name}, #{len}, #{pid}, #{location}, #{type}, #{time})
+        insert into file (`name`,len,pid,location,`type`,`time`,owner)
+            values (#{name}, #{len}, #{pid}, #{location}, #{type}, #{time}, #{owner})
     </insert>
 
     <!--Boolean mkDir(FileInfo fileInfo);-->
     <insert id="mkDir">
-        insert into file (id,`name`,len,pid,location,`type`,`time`)
-        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type},#{time})
+        insert into file (id,`name`,len,pid,location,`type`,`time`,owner)
+        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type},#{time},#{owner})
     </insert>
 
     <!--List<FileInfo> getFilesByFid(Integer fid);-->
     <select id="getFilesByFid" resultType="com.vfd.demo.bean.FileInfo">
-        select * from file where pid = #{fid}
+        select * from file where pid = #{fid} and owner = #{owner}
     </select>
 
     <!--String getLocationById(Integer id);-->
     <select id="getFileById" resultType="com.vfd.demo.bean.FileInfo">
-        select * from file where id = #{id}
+        select * from file where id = #{id} and owner = #{owner}
     </select>
 
-    <!--void deleteFileById(Integer id);-->
+    <!-- Boolean deleteFileById(Integer id, Integer owner);-->
     <delete id="deleteFileById">
-        delete from file where id = #{id}
+        delete from file where id = #{id} and owner = #{owner}
     </delete>
 </mapper>
