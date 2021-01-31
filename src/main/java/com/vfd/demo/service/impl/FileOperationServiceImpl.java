@@ -33,7 +33,7 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Override
     @Transactional
     public Boolean saveFile(FileInfo fileInfo) {
-        List<FileInfo> filesByFid = getFilesByFid(fileInfo.getPid());
+        List<FileInfo> filesByFid = getFilesByFid(fileInfo.getPid(), fileInfo.getOwner());
         for (FileInfo f:filesByFid) {
             if (f.getName().equals(fileInfo.getName())) {
                 return false;
@@ -49,18 +49,18 @@ public class FileOperationServiceImpl implements FileOperationService {
     }
 
     @Override
-    public List<FileInfo> getFilesByFid(Integer fid) {
-        return fileOperationMapper.getFilesByFid(fid);
+    public List<FileInfo> getFilesByFid(Integer fid, Integer owner) {
+        return fileOperationMapper.getFilesByFid(fid, owner);
     }
 
     @Override
-    public FileInfo getFileById(Integer id) {
-        return fileOperationMapper.getFileById(id);
+    public FileInfo getFileById(Integer id, Integer owner) {
+        return fileOperationMapper.getFileById(id, owner);
     }
 
     @Override
-    public Boolean deleteFileById(Integer id) {
-        return fileOperationMapper.deleteFileById(id);
+    public Boolean deleteFileById(Integer id,Integer owner) {
+        return fileOperationMapper.deleteFileById(id, owner);
     }
 
     @Async
