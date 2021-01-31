@@ -51,12 +51,6 @@ public class AccountController {
     @RequestMapping("/sendCode")
     public String sendCode(String email) {
         String verificationCode = null;
-        /*try {
-            verificationCode = sendMessage.getVerificationCode();
-        } catch (VerificationCodeLengthException e) {
-            logger.error("sendCode:用户注册时生成的验证码长度不足6位");
-            return "VerificationCodeLengthException";
-        }*/
         verificationCode = getVerificationCode();
         //先检查是否已存在此邮箱
         if (userLoginService.isExist(email)) {
@@ -159,9 +153,9 @@ public class AccountController {
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId)); //用户根文件夹id
+        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId)); //用户根文件夹id
         modelAndView.addObject("location","");  //位置
-        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId);    //所有文件
+        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId, userId);    //所有文件
         getDirsAndDocs(modelAndView, all);
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
         modelAndView.addObject("path",fileInfos);
@@ -192,9 +186,9 @@ public class AccountController {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",login.getName());
             modelAndView.addObject("id",login.getId());     //将用户id发送到index页面
-            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId())); //用户根文件夹id
+            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId(), login.getId())); //用户根文件夹id
             modelAndView.addObject("location","");  //位置
-            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId());    //所有文件
+            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId(), login.getId());    //所有文件
             getDirsAndDocs(modelAndView, all);
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
 //            fileInfos.add(new FileInfo(-1*login,"allFiles"));
