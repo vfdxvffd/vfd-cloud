@@ -2,6 +2,7 @@ package com.vfd.demo.mapper;
 
 import com.vfd.demo.bean.FileInfo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,18 +37,18 @@ public interface FileOperationMapper {
      * @param fid
      * @return
      */
-    List<FileInfo> getFilesByFid(Integer fid);
+    List<FileInfo> getFilesByFid(@Param("fid") Integer fid, @Param("owner") Integer owner);
 
     /**
      * 通过id获得文件对象
      * @param id
      * @return
      */
-    FileInfo getFileById(Integer id);
+    FileInfo getFileById(@Param("id") Integer id, @Param("owner") Integer owner);
 
     /**
      * 通过id删除某个文件
      * @param id
      */
-    Boolean deleteFileById(Integer id);
+    Boolean deleteFileById(@Param("id") Integer id, @Param("owner") Integer owner);
 }
