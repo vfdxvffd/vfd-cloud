@@ -364,7 +364,7 @@
                                         <td th:text="${doc.convertToSize()}"></td>
                                         <td>
                                             <!--<a th:href="@{'/download/' + ${doc.getId()}}">下载</a>-->
-                                            <a th:href="@{'/download/' + ${doc.getId()}}" class="btn btn-primary btn-circle">
+                                            <a th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id}" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-download fa-sm "></i>
                                             </a>
                                             <!--<a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);">删除</a>-->
@@ -613,7 +613,7 @@
                     doc_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"\" class=\"btn btn-primary btn-circle\">" +
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
                         "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
@@ -715,7 +715,7 @@
                         add_html += "<tr id=\"tr"+this.id+"\">"+
                             "<td><p>"+this.name+"</p></td>"+
                             "<td>"+getFileSize(this.len)+"</td>"+
-                            "<td>"+ "<a href=\"/download/"+this.id+"\" class=\"btn btn-primary btn-circle\">" +
+                            "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner+"\" class=\"btn btn-primary btn-circle\">" +
                             "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                             "                                            </a>"+
                             "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
