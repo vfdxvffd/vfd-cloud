@@ -2,6 +2,7 @@ package com.vfd.demo.service;
 
 import com.vfd.demo.bean.FileInfo;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -45,4 +46,29 @@ public interface FileOperationService {
      * @param id
      */
     void deleteFileOnDiskById(Integer id);
+
+    /**
+     * 删除一个文件夹
+     * @param dir
+     */
+    void deleteDir(File dir);
+
+    /**
+     * 下载完文件后删除临时文件
+     * @param dir
+     */
+    void deleteTmpDir(File dir);
+
+    /**
+     * 采用国密sm4算法加密文件
+     * @param filePath
+     * @param id
+     */
+    void encryptFile (String fileName, Integer id);
+
+    /**
+     * 采用国密sm4算法解密文件
+     * @param filePath
+     */
+    String decryptFile (String fileName, Integer id);
 }
