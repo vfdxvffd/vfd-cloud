@@ -63,6 +63,7 @@ public class UploadFileController {
                         result.add(fileInfo);
                         boolean mkdir = new File(PROJECT_DIR + fileInfo.getId()).mkdirs();
                         file.transferTo(new File(PROJECT_DIR + fileInfo.getId() + "/" + file.getOriginalFilename()));
+                        fileOperationService.encryptFile(file.getOriginalFilename(), fileInfo.getId());
                         rabbitTemplate.convertAndSend("log.direct","info","upload: 文件上传成功，文件id为" + fileInfo.getId());
                     }
                 }
