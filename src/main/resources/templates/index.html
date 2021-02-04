@@ -59,7 +59,7 @@
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="javascript:void(0);"
-                    th:onclick="enter_into_dir(-1*[[${id}]]);">
+                    th:onclick="enter_into_dir([[${id}]],-1*[[${id}]]);">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -71,7 +71,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="javascript:void(0);" th:onclick="enter_into_dir(-1*[[${id}]]);">
+                <a class="nav-link" href="javascript:void(0);" th:onclick="enter_into_dir([[${id}]],-1*[[${id}]]);">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>全部文件</span></a>
             </li>
@@ -288,7 +288,7 @@
                                             <input type="number" name="fid" th:value="${pa.getId()}">
                                         </label>
                                     </form>
-                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${pa.getId()}]]);">
+                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[{id}]],[[${pa.getId()}]]);">
                                     </a> >
                                 </div>
                                 <div class="float-left">
@@ -333,7 +333,7 @@
                                                 </label>
                                             </form>
                                             <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
-                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getId()}]]);">
+                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getOwner()}]],[[${dir.getId()}]]);">
                                                 <p th:text="${dir.getName()}"></p>
                                             </a>
                                         </td>
@@ -539,10 +539,7 @@
         document.getElementById('fileUploadFail').innerHTML="";
     });
 
-    function enter_into_dir(obj) {
-         // document.getElementById('enter_into_dir'+obj).submit();
-        var curr_user_name = document.getElementById('curr_user_name').textContent;
-        var form_id = "enter_into_dir"+obj;
+    function enter_into_dir(id, fid) {
         var guide_con = document.getElementById('guide');
         var guide_html = "";
         var dir_con = document.getElementById('dir_tbody');
@@ -552,7 +549,7 @@
         $.ajax({
             type: "post",
             url: "/enterFile",
-            data: $('#'+form_id).serialize(),
+            data: {id: id, fid: fid},
             cache: false,
             dataType: "json",
             success: function (result) {
@@ -572,7 +569,7 @@
                        "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
                        "                </label>" +
                        "            </form>"+
-                       "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
+                       "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
                        "                <p>"+this.name+" ></p></a>" +
                        "</div>";
                 });
@@ -593,7 +590,7 @@
                         "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
                         "                </label>" +
                         "            </form>"+
-                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.id+");\">" +
+                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
                         "               <p>"+this.name+"</p>" +
                         "           </a>" +
                         "       </td>" +
@@ -659,7 +656,7 @@
                     "                    <input type=\"number\" name=\"fid\" value=\""+result.id+"\">" +
                     "                </label>" +
                     "            </form>"+
-                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.id+");\">" +
+                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+");\">" +
                     "               <p>"+result.name+"</p>" +
                     "           </a>" +
                     "       </td>" +
