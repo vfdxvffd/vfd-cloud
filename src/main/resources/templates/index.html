@@ -94,12 +94,12 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">文件类型:</h6>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">文档</a>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">图片</a>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">视频</a>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">音频</a>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">种子</a>
-                        <a class="collapse-item" href="#" data-toggle="modal" data-target="#logoutModal">其他</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],1);">文档</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],2);">图片</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],3);">视频</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],4);">音频</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],5);">种子</a>
+                        <a class="collapse-item" href="javascript:void(0);" th:onclick="classify([[${id}]],6);">其他</a>
                     </div>
                 </div>
             </li>
@@ -833,6 +833,56 @@
                 } else {
                     alert("删除失败，请稍后重试！");
                 }
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function classify(userId,type) {
+        var request_url = "";
+        if (type === 1) {
+            request_url = "/find/document/" + userId;
+        } else if (type === 2) {
+            request_url = "/find/picture/" + userId;
+        } else if (type === 3) {
+            request_url = "/find/video/" + userId;
+        } else if (type === 4) {
+            request_url = "/find/audio/" + userId;
+        } else if (type === 5) {
+            request_url = "/find/torrent/" + userId;
+        } else if (type === 6) {
+            request_url = "/find/others/" + userId;
+        } else {
+            alert("出错了！");
+        }
+        var tbody = document.getElementById('doc_tbody');
+        $.ajax({
+            type: "GET",
+            url: request_url,
+            async: false,
+            cache: false,
+            contentType: false,
+            success: function (result) {
+                var add_html = "";
+                $.each(result,function (){
+                    add_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td><p>"+this.name+"</p></td>"+
+                        "<td>"+getFileSize(this.len)+"</td>"+
+                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner+"\" class=\"btn btn-primary btn-circle\">" +
+                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
+                        "                                            </a>"+
+                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+                        "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                                <i class=\"fas fa-trash\"></i>" +
+                        "                                            </a>"+"</td>"+
+                        "<td>"+ this.time +"</td></tr>";
+                });
+                document.getElementById('dir_tbody').innerHTML="";
+                tbody.innerHTML=add_html;
                 return false;
             },
             error: function (msg) {
