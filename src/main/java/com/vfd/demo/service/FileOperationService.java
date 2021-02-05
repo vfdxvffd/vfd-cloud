@@ -71,4 +71,12 @@ public interface FileOperationService {
      * @param filePath
      */
     String decryptFile (String fileName, Integer id);
+
+    /**
+     * 根据用户id和文件类型获取文件
+     * @param type
+     * @param owner
+     * @return
+     */
+    List<FileInfo> getFilesByType (Integer type, Integer owner);
 }

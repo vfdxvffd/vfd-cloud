@@ -71,11 +71,6 @@ public class FileOperationServiceImpl implements FileOperationService {
         File file = new File(UploadFileController.PROJECT_DIR + id);
         if (file.exists()) {
             deleteDir(file);
-            /*boolean delete1 = Objects.requireNonNull(file.listFiles())[0].delete();
-            boolean delete = file.delete();
-            if (!(delete1 && delete)) {
-                rabbitTemplate.convertAndSend("log.direct","error","deleteFileOnDiskById:文件从硬盘删除发生错误:文件id为:" + id);
-            }*/
         }
     }
 
@@ -126,6 +121,11 @@ public class FileOperationServiceImpl implements FileOperationService {
         String source = UploadFileController.PROJECT_DIR + id + "/" + fileName;
         Sm4Utils.decryptFile("86C63180C2806ED1F47B859DE501215B",source,decrypt);
         return uuid;
+    }
+
+    @Override
+    public List<FileInfo> getFilesByType(Integer type, Integer owner) {
+        return fileOperationMapper.getFilesByType(type, owner);
     }
 
 

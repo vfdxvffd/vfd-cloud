@@ -51,4 +51,12 @@ public interface FileOperationMapper {
      * @param id
      */
     Boolean deleteFileById(@Param("id") Integer id, @Param("owner") Integer owner);
+
+    /**
+     * 通过文件类型查找某个用户的所有文件
+     * @param type
+     * @param owner
+     * @return
+     */
+    List<FileInfo> getFilesByType(@Param("type") Integer type, @Param("owner") Integer owner);
 }

@@ -30,4 +30,9 @@
     <delete id="deleteFileById">
         delete from file where id = #{id} and owner = #{owner}
     </delete>
+
+    <!--List<FileInfo> getFilesByType(@Param("type") Integer type, @Param("owner") Integer owner);-->
+    <select id="getFilesByType" resultType="com.vfd.demo.bean.FileInfo">
+        select * from file where `type` = #{type} and owner = #{owner}
+    </select>
 </mapper>
