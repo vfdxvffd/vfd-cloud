@@ -209,11 +209,6 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Vfd-Cloud</h1>
-                        <!--<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#mkdirModal"><i
-                                class="fas fa-download fa-sm text-white-50"></i> 新建文件夹</a>
-                        <a href="javascript:uploadFile()" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                                class="fas fa-download fa-sm text-white-50"></i> 上传文件</a>-->
-
                         <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#mkdirModal">
                                         <span class="icon text-white-50">
                                             <i class="fas fa-check"></i>
@@ -228,12 +223,6 @@
                                 <progress></progress>
                                 <percentage>0%</percentage>
                             </div>
-
-                            <!--<div class="progress mb-4">
-                                <div class="progress-bar" role="progressbar" style="width: 98%"
-                                     aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>-->
-
                             <div>
                                 <span style="width: 100px; display: inline-block; text-align: right">上传速度：</span>
                                 <span style="width: 300px;" class="progress-speed">0 M/S, 0/0M</span>
@@ -252,21 +241,17 @@
                         </a>
 
                         <form id="upload_file" style="display: none" action="/uploadFile" method="post" enctype="multipart/form-data">
-                            <!--style="display: none"-->
                             <input type="file" id="select_file" name="select_file" multiple/><br/>
                             <label>
                                 <!--当前登陆用户的id-->
-                                <!--style="display: none" -->
                                 <input type="text" name="id" th:value="${id}">
                             </label>
                             <label>
                                 <!--当前文件夹的id-->
-                                <!--style="display: none" -->
                                 <input type="number" id="upload_fid" name="fid" th:value="${currentDir.getId()}">
                             </label>
                             <label>
                                 <!--目录的location-->
-                                <!--style="display: none" -->
                                 <input type="text" id="upload_location" name="location" th:value="${currentDir.getLocation()}">
                             </label>
                         </form>
@@ -278,16 +263,6 @@
                         <h6 class="m-0 font-weight-bold text-primary">
                             <div class="float-left" id="guide">
                                 <div class="float-left" th:each="pa:${path}">
-                                    <form action="/enterFile" style="display: none" method="post" th:id="'enter_dir' + ${pa.getId()}">
-                                        <label>
-                                            <!-- style="display: none"-->
-                                            <input type="text" name="id" th:value="${id}">
-                                        </label>
-                                        <label>
-                                            <!--style="display: none" -->
-                                            <input type="number" name="fid" th:value="${pa.getId()}">
-                                        </label>
-                                    </form>
                                     <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[{id}]],[[${pa.getId()}]]);">
                                     </a> >
                                 </div>
@@ -299,7 +274,6 @@
                     </div>
                     <div class="card-body card mb-4 py-3 border-left-primary">
                         <div class="table-responsive">
-                            <!--<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">-->
                             <table class="table" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
                                     <tr>
@@ -318,59 +292,33 @@
                                     </tr>
                                 </tfoot>
                                 <tbody id="dir_tbody">
-<!--                                </tbody>
-                                <tbody>-->
                                     <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
-                                            <form action="/enterFile" style="display: none" method="post" th:id="'enter_into_dir' + ${dir.getId()}">
-                                                <label>
-                                                    <!--style="display: none"-->
-                                                    <input type="number" name="id" th:value="${id}">
-                                                </label>
-                                                <label>
-                                                    <!--style="display: none" -->
-                                                    <input type="number" name="fid" th:value="${dir.getId()}">
-                                                </label>
-                                            </form>
-                                            <!--<a href="javascript:test()" th:οnclick="'javascript:test(\''+${file.getId()}+'\')'">-->
-                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getOwner()}]],[[${dir.getId()}]]);">
+                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]]);">
                                                 <p th:text="${dir.getName()}"></p>
                                             </a>
                                         </td>
-                                        <!--<td th:text="${dir.getLen()}"></td>-->
                                         <td th:text="'--'"></td>         <!--文件夹长度不显示-->
                                         <td>
-                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a>-->
-
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${dir.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
-                                        <!--<td><a href="javascript:void(0);" th:onclick="delete_file([[${dir.getId()}]]);">删除</a></td>-->
                                         <td th:text="${dir.gainTime()}"></td>
                                     </tr>
                                 </tbody>
 
                                 <tbody id="doc_tbody">
-<!--                                </tbody>
-                                <tbody>-->
                                     <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
                                         </td>
                                         <td th:text="${doc.convertToSize()}"></td>
                                         <td>
-                                            <!--<a th:href="@{'/download/' + ${doc.getId()}}">下载</a>-->
                                             <a th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id}" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-download fa-sm "></i>
                                             </a>
-                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);">删除</a>-->
-                                            <!--<a href="javascript:void(0);" th:onclick="delete_file([[${doc.getId()}]]);" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a>-->
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${doc.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
@@ -477,8 +425,6 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <!--<a onclick="document.getElementById('input_dir').submit();"
-                       class="btn btn-primary" href="javascript:void(0)">Create</a>-->
                     <a onclick="mkdir();"
                        class="btn btn-primary" href="javascript:void(0)">Create</a>
                 </div>
@@ -561,14 +507,6 @@
                 //style="display: none"
                 $.each(pathList, function () {
                    guide_html += "<div class=\"float-left\">"+
-                       "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
-                       "                <label>" +
-                       "                    <input type=\"number\" name=\"id\" value=\""+this.owner+"\">" +
-                       "                </label>" +
-                       "                <label>" +
-                       "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
-                       "                </label>" +
-                       "            </form>"+
                        "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
                        "                <p>"+this.name+" ></p></a>" +
                        "</div>";
@@ -582,14 +520,6 @@
                 $.each(dirList, function () {
                     dir_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td>"+
-                        "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+this.id+"\">" +
-                        "                <label>"+
-                        "                    <input type=\"number\" name=\"id\" value=\""+this.owner+"\">" +
-                        "                </label>"+
-                        "                <label>" +
-                        "                    <input type=\"number\" name=\"fid\" value=\""+this.id+"\">" +
-                        "                </label>" +
-                        "            </form>"+
                         "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
                         "               <p>"+this.name+"</p>" +
                         "           </a>" +
@@ -631,7 +561,6 @@
     }
 
     function mkdir() {
-        var curr_user_name = document.getElementById('curr_user_name').textContent;
         var tbody_dir = document.getElementById('dir_tbody');
         $.ajax({
             type: "post",
@@ -645,17 +574,8 @@
                     document.getElementById('dup_dir').style.color='red';
                     return false;
                 }
-                //style="display: none"
                 var add_html = "<tr id=\"tr"+result.id+"\">"+
                     "<td>"+
-                    "<form action=\"/enterFile\" style=\"display: none\" method=\"post\" id=\"enter_into_dir"+result.id+"\">" +
-                    "                <label>"+
-                    "                    <input type=\"number\" name=\"id\" value=\""+result.owner+"\">" +
-                    "                </label>"+
-                    "                <label>" +
-                    "                    <input type=\"number\" name=\"fid\" value=\""+result.id+"\">" +
-                    "                </label>" +
-                    "            </form>"+
                     "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+");\">" +
                     "               <p>"+result.name+"</p>" +
                     "           </a>" +
@@ -670,8 +590,6 @@
                     "       <td>"+ result.time +"</td>" +
                     "   </tr>";
                 $('#mkdirModal').modal('hide');
-                //document.getElementById('input_dir').reset();
-                // document.getElementById('inputDir')
                 tbody_dir.innerHTML = add_html+tbody_dir.innerHTML;
                 return false;
             },
@@ -801,11 +719,6 @@
         setTimeout(hideProgress, 2000);
     };
 
-
-
-/*    function enter_dir(obj) {
-        document.getElementById('enter_dir'+obj).submit();
-    }*/
 
     function Values(ID, owner) {
         $('#deleteFileId').val(ID);
