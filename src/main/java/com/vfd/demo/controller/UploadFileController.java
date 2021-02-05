@@ -2,6 +2,8 @@ package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.service.FileOperationService;
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicMatch;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -28,6 +30,51 @@ import java.util.*;
 public class UploadFileController {
 
     public static String PROJECT_DIR = "/home/vfdxvffd/vfd-cloud/";
+    public static Map<String, Integer> map = new HashMap<>();
+
+    static {
+        //文档
+        map.put("text/markdown", 1);
+        map.put("text/plain", 1);
+        map.put("text/html", 1);
+        map.put("text/javascript", 1);
+        map.put("text/css", 1);
+        map.put("application/pdf", 1);
+        map.put("application/vnd.ms-works", 1);
+        map.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", 1);
+        map.put("application/vnd.ms-powerpoint", 1);
+        map.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", 1);
+        map.put("application/msword", 1);
+        map.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 1);
+        map.put("application/vnd.ms-excel", 1);
+        map.put("application/vnd.ms-htmlhelp", 1);
+        //图片
+        map.put("image/png", 2);
+        map.put("image/x-icon", 2);
+        map.put("image/gif", 2);
+        map.put("image/jpeg", 2);
+        map.put("image/bmp", 2);
+        map.put("image/webp", 2);
+        map.put("image/vnd", 2);
+        map.put("image/vnd.microsoft.icon", 2);
+        map.put("image/svg+xml", 2);
+        //视频
+        map.put("video/x-msvideo", 3);
+        map.put("video/jpm", 3);
+        map.put("video/jpeg", 3);
+        map.put("video/quicktime", 3);
+        map.put("video/x-sgi-movie", 3);
+        map.put("video/mp4", 3);
+        map.put("video/mpeg", 3);
+        map.put("video/ogg", 3);
+        //音频
+        map.put("audio/mpeg", 4);
+        map.put("audio/mp4", 4);
+        map.put("audio/ogg", 4);
+        //种子
+        map.put("application/x-bittorrent", 5);
+    }
+
 
     @Autowired
     FileOperationService fileOperationService;
@@ -36,6 +83,7 @@ public class UploadFileController {
 
     /**
      * 上传文件
+     *
      * @param files
      * @param username
      * @param fid
@@ -44,16 +92,21 @@ public class UploadFileController {
      */
     @ResponseBody
     @PostMapping("/uploadFile")
-    public List<FileInfo> uploadFile(@RequestPart("select_file")MultipartFile[] files,
+    public List<FileInfo> uploadFile(@RequestPart("select_file") MultipartFile[] files,
                                      @RequestParam("id") Integer id,
                                      @RequestParam("fid") Integer fid,
                                      @RequestParam("location") String location) {
         List<FileInfo> result = new ArrayList<>();
         if (files.length > 0) {
             try {
-                for (MultipartFile file:files) {
+                for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
-                        FileInfo fileInfo = new FileInfo(null,file.getOriginalFilename(), file.getSize(), fid, location,1,new Timestamp(new Date().getTime()),id);
+                        String mimeType = file.getContentType();
+                        int type = 6;
+                        if (map.containsKey(mimeType)) {
+                            type = map.get(mimeType);
+                        }
+                        FileInfo fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), fid, location, type, new Timestamp(new Date().getTime()), id);
                         Boolean saveFile = fileOperationService.saveFile(fileInfo);
                         if (!saveFile) {        //往数据库添加失败
                             fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
@@ -64,7 +117,7 @@ public class UploadFileController {
                         boolean mkdir = new File(PROJECT_DIR + fileInfo.getId()).mkdirs();
                         file.transferTo(new File(PROJECT_DIR + fileInfo.getId() + "/" + file.getOriginalFilename()));
                         fileOperationService.encryptFile(file.getOriginalFilename(), fileInfo.getId());
-                        rabbitTemplate.convertAndSend("log.direct","info","upload: 文件上传成功，文件id为" + fileInfo.getId());
+                        rabbitTemplate.convertAndSend("log.direct", "info", "upload: 文件上传成功，文件id为" + fileInfo.getId());
                     }
                 }
             } catch (IOException e) {
@@ -78,8 +131,8 @@ public class UploadFileController {
     @ResponseBody
     @PostMapping("/enterFile")
     public Map<String, Object> enterFile(@RequestParam("id") Integer id,
-                                  @RequestParam("fid") Integer fid) {
-        Map<String,Object> result = new HashMap<>();
+                                         @RequestParam("fid") Integer fid) {
+        Map<String, Object> result = new HashMap<>();
         FileInfo fileInfo = fileOperationService.getFileById(fid, id);  //父目录对象
         List<FileInfo> all = fileOperationService.getFilesByFid(fid, id);
         List<FileInfo> dirs = new ArrayList<>();     //文件夹
@@ -91,17 +144,17 @@ public class UploadFileController {
                 docs.add(new FileInfo(f));
             }
         }
-        result.put("dirs",dirs);
-        result.put("docs",docs);
+        result.put("dirs", dirs);
+        result.put("docs", docs);
         String[] dirId = fileInfo.getLocation().split(">");
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        for (String dir:dirId) {
+        for (String dir : dirId) {
             String[] split = dir.split("\\.");
             if (split.length == 2)
                 fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id));
         }
-        result.put("currentDir",fileInfo);
-        result.put("path",fileInfos);
+        result.put("currentDir", fileInfo);
+        result.put("path", fileInfos);
         return result;
     }
 
@@ -109,11 +162,11 @@ public class UploadFileController {
     @ResponseBody
     @PostMapping("/mkdir")
     public FileInfo mkdir(@RequestParam("id") Integer id,
-                              @RequestParam("fid") Integer fid,
-                              @RequestParam("location") String location,
-                              @RequestParam("inputDir") String dirName,
-                              @RequestParam("f_name") String fName,
-                              HttpSession session) {
+                          @RequestParam("fid") Integer fid,
+                          @RequestParam("location") String location,
+                          @RequestParam("inputDir") String dirName,
+                          @RequestParam("f_name") String fName,
+                          HttpSession session) {
         FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0, new Timestamp(new Date().getTime()), id);
         Boolean saveFile = fileOperationService.saveFile(result);
         if (saveFile) {
