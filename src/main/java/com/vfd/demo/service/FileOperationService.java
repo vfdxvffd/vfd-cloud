@@ -33,13 +33,13 @@ public interface FileOperationService {
      * @param id
      * @return
      */
-    FileInfo getFileById(Integer id, Integer owner);
+    FileInfo getFileById(Integer id, Integer owner, Integer fid);
 
     /**
      * 通过id删除某个文件
      * @param id
      */
-    Boolean deleteFileById(Integer id, Integer owner);
+    Boolean deleteFileById(Integer id, Integer owner, Integer fid);
 
     /**
      * 真正在磁盘上删除文件
