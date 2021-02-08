@@ -2,7 +2,6 @@ package com.vfd.demo;
 
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
-import net.sf.jmimemagic.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,11 +81,21 @@ class CloudApplicationTests {
     }
 
     //判断文件类型
-    @Test
+    /*@Test
     public void testFileType() throws MagicParseException, MagicException, MagicMatchNotFoundException {
         File file = new File("/home/vfdxvffd/桌面/个人简历.pdf");
         MagicMatch matcher = Magic.getMagicMatch(file,false,true);
         System.out.println(matcher.getMimeType());
-    }
+    }*/
 
+
+    @Test
+    public void gen () {
+        StringBuilder pass = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            char c = (char)('A'+Math.random()*('Z'-'A'+1));
+            pass.append(c);
+        }
+        System.out.println(new String(pass));
+    }
 }
