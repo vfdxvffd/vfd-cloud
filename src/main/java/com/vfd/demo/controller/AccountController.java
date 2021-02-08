@@ -153,7 +153,7 @@ public class AccountController {
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId)); //用户根文件夹id
+        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId,0)); //用户根文件夹id
         modelAndView.addObject("location","");  //位置
         List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId, userId);    //所有文件
         getDirsAndDocs(modelAndView, all);
@@ -186,7 +186,7 @@ public class AccountController {
             modelAndView = new ModelAndView("index");
             modelAndView.addObject("username",login.getName());
             modelAndView.addObject("id",login.getId());     //将用户id发送到index页面
-            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId(), login.getId())); //用户根文件夹id
+            modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId(), login.getId(),0)); //用户根文件夹id
             modelAndView.addObject("location","");  //位置
             List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId(), login.getId());    //所有文件
             getDirsAndDocs(modelAndView, all);
