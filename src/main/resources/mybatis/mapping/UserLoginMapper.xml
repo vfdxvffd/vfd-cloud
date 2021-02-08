@@ -26,4 +26,9 @@
     <select id="getUserInfoByEmail" resultType="com.vfd.demo.bean.UserAccInfo">
         select * from user_login where email = #{email}
     </select>
+
+    <!--String getNameById (Integer id);-->
+    <select id="getNameById" resultType="java.lang.String">
+        select `name` from user_login where id = #{id}
+    </select>
 </mapper>
