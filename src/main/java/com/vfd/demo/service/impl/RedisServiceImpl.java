@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,6 +32,30 @@ public class RedisServiceImpl implements RedisService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public boolean hmset(String key, Map<String, Object> map, long time) {
+        try {
+            redisTemplate.opsForHash().putAll(key, map);
+            if (time > 0) {
+                redisTemplate.expire(key, time, TimeUnit.SECONDS);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasKey(String key) {
+        return redisTemplate.hasKey(key);
+    }
+
+    @Override
+    public Map<Object, Object> hmget(String key) {
+        return redisTemplate.opsForHash().entries(key);
     }
 
     @Override
