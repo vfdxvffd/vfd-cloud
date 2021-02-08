@@ -19,8 +19,8 @@ public class AdminWebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns("/","/login","/pages/register","/pages/forgot-password",
-                        "/forget_password","/reset_password","/register","/sendCode",
-                        "/pages/reset-password",
+                        "/forget_password","/reset_password","/register","/sendCode","/preserve-file",
+                        "/pages/reset-password","/pages/share-file",
                         "/asserts/**","/webjars/**");
     }
 }
