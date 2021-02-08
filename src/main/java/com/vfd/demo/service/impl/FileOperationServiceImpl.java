@@ -56,13 +56,13 @@ public class FileOperationServiceImpl implements FileOperationService {
     }
 
     @Override
-    public FileInfo getFileById(Integer id, Integer owner) {
-        return fileOperationMapper.getFileById(id, owner);
+    public FileInfo getFileById(Integer id, Integer owner, Integer fid) {
+        return fileOperationMapper.getFileById(id, owner, fid);
     }
 
     @Override
-    public Boolean deleteFileById(Integer id,Integer owner) {
-        return fileOperationMapper.deleteFileById(id, owner);
+    public Boolean deleteFileById(Integer id,Integer owner, Integer fid) {
+        return fileOperationMapper.deleteFileById(id, owner, fid);
     }
 
     @Async
