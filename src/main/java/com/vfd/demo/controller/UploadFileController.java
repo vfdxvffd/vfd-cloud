@@ -2,8 +2,6 @@ package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.service.FileOperationService;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -127,13 +125,21 @@ public class UploadFileController {
         return result;
     }
 
-    //通过文件夹的id进入某个文件夹fid
+
+    /**
+     * 通过文件夹的id进入某个文件夹fid
+     * @param id 用户id
+     * @param fid 要进入的目录id
+     * @param pid 要进入目录的父目录id
+     * @return
+     */
     @ResponseBody
     @PostMapping("/enterFile")
     public Map<String, Object> enterFile(@RequestParam("id") Integer id,
-                                         @RequestParam("fid") Integer fid) {
+                                         @RequestParam("fid") Integer fid,
+                                         @RequestParam("pid") Integer pid) {
         Map<String, Object> result = new HashMap<>();
-        FileInfo fileInfo = fileOperationService.getFileById(fid, id);  //父目录对象
+        FileInfo fileInfo = fileOperationService.getFileById(fid, id, pid);  //父目录对象
         List<FileInfo> all = fileOperationService.getFilesByFid(fid, id);
         List<FileInfo> dirs = new ArrayList<>();     //文件夹
         List<FileInfo> docs = new ArrayList<>();     //文档
@@ -148,10 +154,13 @@ public class UploadFileController {
         result.put("docs", docs);
         String[] dirId = fileInfo.getLocation().split(">");
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        int pre_id = 0;
         for (String dir : dirId) {
             String[] split = dir.split("\\.");
-            if (split.length == 2)
-                fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id));
+            if (split.length == 2) {
+                fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id));
+                pre_id = Integer.parseInt(split[0]);
+            }
         }
         result.put("currentDir", fileInfo);
         result.put("path", fileInfos);
