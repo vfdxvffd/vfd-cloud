@@ -41,4 +41,11 @@ public interface UserLoginService {
      * @return
      */
     Boolean updateUserPassword (String email, String password);
+
+    /**
+     * 根据用户的id获得名字
+     * @param id
+     * @return
+     */
+    String getNameById (Integer id);
 }
