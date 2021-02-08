@@ -82,11 +82,12 @@ public class DownLoadFileController {
         }
     }*/
 
-    @RequestMapping("/download/{id}/{userId}")
+    @RequestMapping("/download/{id}/{userId}/{fid}")
     public ResponseEntity<InputStreamResource> downloadFile(@PathVariable("id") Integer id,
-                                                            @PathVariable("userId") Integer userId) throws IOException {
+                                                            @PathVariable("userId") Integer userId,
+                                                            @PathVariable("fid") Integer fid) throws IOException {
         //读取文件
-        String name = fileOperationService.getFileById(id, userId).getName();
+        String name = fileOperationService.getFileById(id, userId, fid).getName();
         String uuid = fileOperationService.decryptFile(name, id);
         File tmpDir = new File(UploadFileController.PROJECT_DIR + id + "/" + uuid);
         File file = Objects.requireNonNull(tmpDir.listFiles())[0];
