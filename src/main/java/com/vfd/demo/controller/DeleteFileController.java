@@ -26,11 +26,10 @@ public class DeleteFileController {
     @ResponseBody
     @RequestMapping("delete")
     public String deleteFile (@RequestParam("id") Integer id,
-                              @RequestParam("owner") Integer owner) {
+                              @RequestParam("owner") Integer owner,
+                              @RequestParam("fid") Integer fid) {
         //fileOperationService.deleteFileOnDiskById(id);
-        System.out.println(id);
-        System.out.println(owner);
-        if (fileOperationService.deleteFileById(id, owner)) {
+        if (fileOperationService.deleteFileById(id, owner,fid)) {
             rabbitTemplate.convertAndSend("log.direct","info","delete: 文件id为" + id + "的文件成功从数据库删除");
             return "success";
         } else {
