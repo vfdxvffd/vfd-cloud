@@ -42,10 +42,17 @@ public class FileInfo {
 
     }
 
-    public FileInfo(Integer id, String name, Integer owner) {
+    public FileInfo(Integer id, Integer pid, int owner) {
+        this.id = id;
+        this.pid = pid;
+        this.owner = owner;
+    }
+
+    public FileInfo(Integer id, String name, Integer owner, Integer pid) {
         this.id = id;
         this.name = name;
         this.owner = owner;
+        this.pid = pid;
     }
 
     public FileInfo(String name, Long len, Integer pid, String location, Integer type, Timestamp time, int owner) {
