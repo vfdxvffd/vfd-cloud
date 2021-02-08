@@ -52,4 +52,11 @@ public interface UserLoginMapper {
      * @return
      */
     UserAccInfo getUserInfoByEmail(String email);
+
+    /**
+     * 根据用户的id获得名字
+     * @param id
+     * @return
+     */
+    String getNameById (Integer id);
 }
