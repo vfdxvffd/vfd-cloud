@@ -59,7 +59,7 @@
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="javascript:void(0);"
-                    th:onclick="enter_into_dir([[${id}]],-1*[[${id}]]);">
+                    th:onclick="enter_into_dir([[${id}]],-1*[[${id}]],0);">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -71,7 +71,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="javascript:void(0);" th:onclick="enter_into_dir([[${id}]],-1*[[${id}]]);">
+                <a class="nav-link" href="javascript:void(0);" th:onclick="enter_into_dir([[${id}]],-1*[[${id}]],0);">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>全部文件</span></a>
             </li>
@@ -210,12 +210,11 @@
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Vfd-Cloud</h1>
                         <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#mkdirModal">
-                                        <span class="icon text-white-50">
-                                            <i class="fas fa-check"></i>
-                                        </span>
+                            <span class="icon text-white-50">
+                                <i class="fas fa-folder-plus"></i>
+                            </span>
                             <span class="text">新建文件夹</span>
                         </a>
-
                         <!--进度条部分(默认隐藏)-->
                         <div style="display: none" class="progress-body">
                             <div>
@@ -235,7 +234,7 @@
 
                         <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" onclick="uploadFile();">
                                         <span class="icon text-white-50">
-                                            <i class="fas fa-check"></i>
+                                            <i class="fas fa-file-upload"></i>
                                         </span>
                             <span class="text">上传文件</span>
                         </a>
@@ -263,7 +262,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">
                             <div class="float-left" id="guide">
                                 <div class="float-left" th:each="pa:${path}">
-                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[{id}]],[[${pa.getId()}]]);">
+                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[{id}]],[[${pa.getId()}]],[[${pa.getPid()}]]);">
                                     </a> >
                                 </div>
                                 <div class="float-left">
@@ -294,15 +293,19 @@
                                 <tbody id="dir_tbody">
                                     <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
                                         <td>
-                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]]);">
+                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
                                                 <p th:text="${dir.getName()}"></p>
                                             </a>
                                         </td>
                                         <td th:text="'--'"></td>         <!--文件夹长度不显示-->
                                         <td>
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
-                                               th:onclick="Values([[${dir.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
+                                               th:onclick="Values([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
+                                               th:onclick="Values_share([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]])" class="btn btn-primary btn-circle">
+                                                <i class="fas fa-share"></i>
                                             </a>
                                         </td>
                                         <td th:text="${dir.gainTime()}"></td>
@@ -316,12 +319,16 @@
                                         </td>
                                         <td th:text="${doc.convertToSize()}"></td>
                                         <td>
-                                            <a th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id}" class="btn btn-primary btn-circle">
-                                                <i class="fas fa-download fa-sm "></i>
+                                            <a th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id} + '/' + ${doc.getPid()}" class="btn btn-primary btn-circle">
+                                                <i class="fas fa-download"></i>
                                             </a>
                                             <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
-                                               th:onclick="Values([[${doc.getId()}]],[[${id}]]);" class="btn btn-danger btn-circle">
+                                               th:onclick="Values([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
+                                               th:onclick="Values_share([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]])" class="btn btn-primary btn-circle">
+                                                <i class="fas fa-share"></i>
                                             </a>
                                         </td>
                                         <td th:text="${doc.gainTime()}"></td>
@@ -376,6 +383,44 @@
         </div>
     </div>
 
+    <!-- Share Modal-->
+    <div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">Share</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="shareFileId" name="shareFileId">
+                    <input type="hidden" id="shareFileOwnerId" name="shareFileOwnerId">
+                    <input type="hidden" id="shareFileFid" name="shareFileFid">
+                    <!--选择链接有效期-->
+                    <div id="select_time">
+                        <select id="cache_time">
+                            <option value ="1">1天</option>
+                            <option value ="3">3天</option>
+                            <option value="7">7天</option>
+                        </select>
+                    </div>
+                    <!--生成的链接和提取码-->
+                    <div id="link_and_pass">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                    <a class="btn btn-primary" href="javascript:void(0);" onclick="share_file(document.getElementById('shareFileId').value,
+                                                                                              document.getElementById('shareFileOwnerId').value,
+                                                                                              document.getElementById('shareFileFid').value)">生成链接</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!--delete file modal-->
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -388,12 +433,14 @@
                     </button>
                 </div>
                 <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
-                <input type="hidden" id="deleteFileId" name="deleteFileId">
-                <input type="hidden" id="deleteFileOwnerId" name="deleteFileOwnerId">
+                    <input type="hidden" id="deleteFileId" name="deleteFileId">
+                    <input type="hidden" id="deleteFileOwnerId" name="deleteFileOwnerId">
+                    <input type="hidden" id="deleteFileFid" name="deleteFileFid">
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                     <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value,
-                                                                            document.getElementById('deleteFileOwnerId').value)">Confirm</a>
+                                                                            document.getElementById('deleteFileOwnerId').value,
+                                                                            document.getElementById('deleteFileFid').value)">Confirm</a>
                 </div>
             </div>
         </div>
@@ -485,7 +532,16 @@
         document.getElementById('fileUploadFail').innerHTML="";
     });
 
-    function enter_into_dir(id, fid) {
+    $('#shareModal').on('hide.bs.modal', function () {
+         document.getElementById('select_time').innerHTML="<select id=\"cache_time\">\n" +
+             "                            <option value =\"1\">1天</option>\n" +
+             "                            <option value =\"3\">3天</option>\n" +
+             "                            <option value=\"7\">7天</option>\n" +
+             "                        </select>";
+         document.getElementById('link_and_pass').innerHTML="";
+    });
+
+    function enter_into_dir(id, fid, pid) {
         var guide_con = document.getElementById('guide');
         var guide_html = "";
         var dir_con = document.getElementById('dir_tbody');
@@ -495,7 +551,7 @@
         $.ajax({
             type: "post",
             url: "/enterFile",
-            data: {id: id, fid: fid},
+            data: {id: id, fid: fid, pid: pid},
             cache: false,
             dataType: "json",
             success: function (result) {
@@ -507,7 +563,7 @@
                 //style="display: none"
                 $.each(pathList, function () {
                    guide_html += "<div class=\"float-left\">"+
-                       "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
+                       "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+");\">" +
                        "                <p>"+this.name+" ></p></a>" +
                        "</div>";
                 });
@@ -520,16 +576,20 @@
                 $.each(dirList, function () {
                     dir_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td>"+
-                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+");\">" +
+                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+");\">" +
                         "               <p>"+this.name+"</p>" +
                         "           </a>" +
                         "       </td>" +
                         "       <td>--</td>" +
                         "       <td>" +
                         "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "              onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                        "              onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
                         "               <i class=\"fas fa-trash\"></i>" +
                         "           </a>" +
+                        "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+                        "               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
+                        "               <i class=\"fas fa-share\"></i>" +
+                        "           </a>"+
                         "       </td>" +
                         "       <td>"+ this.time +"</td>" +
                         "   </tr>";
@@ -540,12 +600,16 @@
                     doc_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"\" class=\"btn btn-primary btn-circle\">" +
+                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner + "/" + this.pid +"\" class=\"btn btn-primary btn-circle\">" +
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
                         "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
                         "                                                <i class=\"fas fa-trash\"></i>" +
+                        "                                            </a>"+
+                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+                        "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
+                        "                                                <i class=\"fas fa-share\"></i>" +
                         "                                            </a>"+"</td>"+
                         "<td>"+ this.time +"</td></tr>";
                 });
@@ -576,16 +640,20 @@
                 }
                 var add_html = "<tr id=\"tr"+result.id+"\">"+
                     "<td>"+
-                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+");\">" +
+                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+","+result.pid+");\">" +
                     "               <p>"+result.name+"</p>" +
                     "           </a>" +
                     "       </td>" +
                     "       <td>--</td>" +
                     "       <td>" +
                     "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                    "              onclick=\"Values("+result.id+","+result.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                    "              onclick=\"Values("+result.id+","+result.owner+","+result.pid+");\" class=\"btn btn-danger btn-circle\">" +
                     "               <i class=\"fas fa-trash\"></i>" +
                     "           </a>" +
+                    "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+                    "               onclick=\"Values_share("+result.id+","+result.owner+","+result.pid+")\" class=\"btn btn-primary btn-circle\">" +
+                    "               <i class=\"fas fa-share\"></i>" +
+                    "           </a>"+
                     "       </td>" +
                     "       <td>"+ result.time +"</td>" +
                     "   </tr>";
@@ -630,12 +698,16 @@
                         add_html += "<tr id=\"tr"+this.id+"\">"+
                             "<td><p>"+this.name+"</p></td>"+
                             "<td>"+getFileSize(this.len)+"</td>"+
-                            "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner+"\" class=\"btn btn-primary btn-circle\">" +
+                            "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
                             "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                             "                                            </a>"+
                             "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                            "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                            "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
                             "                                                <i class=\"fas fa-trash\"></i>" +
+                            "                                            </a>"+
+                            "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+                            "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
+                            "                                                <i class=\"fas fa-share\"></i>" +
                             "                                            </a>"+"</td>"+
                             "<td>"+ this.time +"</td></tr>";
                     }
@@ -720,13 +792,20 @@
     };
 
 
-    function Values(ID, owner) {
+    function Values(ID, owner, fid) {
         $('#deleteFileId').val(ID);
         $('#deleteFileOwnerId').val(owner);
+        $('#deleteFileFid').val(fid);
+    }
+
+    function Values_share(ID, owner, fid) {
+        $('#shareFileId').val(ID);
+        $('#shareFileOwnerId').val(owner);
+        $('#shareFileFid').val(fid);
     }
 
     //删除文件时利用ajax做异步，id为要删除的文件的id
-    function delete_file(id, owner) {
+    function delete_file(id, owner, fid) {
         $('#deleteModal').modal('hide');
         var tr = document.getElementById("tr" + id);
         $.ajax( {
@@ -735,7 +814,7 @@
             async: false,        //异步下载
             contentType: "application/json; charset=utf-8",
             dataType: "text",
-            data: {id: id, owner: owner},
+            data: {id: id, owner: owner, fid: fid},
             success: function (result) {
                 if (result === "success") {
                     tr.style.display="none";
@@ -743,6 +822,28 @@
                 } else {
                     alert("删除失败，请稍后重试！");
                 }
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function share_file(id, owner, fid) {
+        let time = document.getElementById('cache_time').value;
+        $.ajax( {
+            type: "GET",
+            url: "/getShareLink",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: {id: id, owner: owner, fid: fid, time: time},
+            success: function (result) {
+                document.getElementById('select_time').innerHTML="";
+                document.getElementById('link_and_pass').innerHTML="链接为: " + result.link + "<br/>" + "提取码为: " + result.pass;
+
                 return false;
             },
             error: function (msg) {
@@ -782,12 +883,16 @@
                     add_html += "<tr id=\"tr"+this.id+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner+"\" class=\"btn btn-primary btn-circle\">" +
+                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
                         "                                                <i class=\"fas fa-download fa-sm \"></i>" +
                         "                                            </a>"+
                         "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+","+this.owner+");\" class=\"btn btn-danger btn-circle\">" +
+                        "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
                         "                                                <i class=\"fas fa-trash\"></i>" +
+                        "                                            </a>"+
+                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+                        "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
+                        "                                                <i class=\"fas fa-share\"></i>" +
                         "                                            </a>"+"</td>"+
                         "<td>"+ this.time +"</td></tr>";
                 });
