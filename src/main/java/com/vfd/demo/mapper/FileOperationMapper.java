@@ -44,13 +44,13 @@ public interface FileOperationMapper {
      * @param id
      * @return
      */
-    FileInfo getFileById(@Param("id") Integer id, @Param("owner") Integer owner);
+    FileInfo getFileById(@Param("id") Integer id, @Param("owner") Integer owner, @Param("fid") Integer fid);
 
     /**
      * 通过id删除某个文件
      * @param id
      */
-    Boolean deleteFileById(@Param("id") Integer id, @Param("owner") Integer owner);
+    Boolean deleteFileById(@Param("id") Integer id, @Param("owner") Integer owner, @Param("fid") Integer fid);
 
     /**
      * 通过文件类型查找某个用户的所有文件
