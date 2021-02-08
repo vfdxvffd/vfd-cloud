@@ -1,5 +1,7 @@
 package com.vfd.demo.service;
 
+import java.util.Map;
+
 /**
  * @PackageName: com.vfd.demo.service
  * @ClassName: RedisService
@@ -39,4 +41,27 @@ public interface RedisService {
      * @return true成功 false失败
      */
     boolean set(String key, Object value);
+
+    /**
+     * HashSet 并设置时间
+     * @param key 键
+     * @param map 对应多个键值
+     * @param time 时间(秒)
+     * @return true成功 false失败
+     */
+    boolean hmset(String key, Map<String, Object> map, long time);
+
+    /**
+     * 判断key是否存在
+     * @param key 键
+     * @return true 存在 false不存在
+     */
+    boolean hasKey(String key);
+
+    /**
+     * 获取hashKey对应的所有键值
+     * @param key 键
+     * @return 对应的多个键值
+     */
+    public Map<Object, Object> hmget(String key);
 }
