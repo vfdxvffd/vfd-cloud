@@ -62,4 +62,9 @@ public class UserLoginServiceImpl implements UserLoginService {
     public Boolean updateUserPassword (String email, String password) {
         return userLoginMapper.updateUserPassword(email,password);
     }
+
+    @Override
+    public String getNameById(Integer id) {
+        return userLoginMapper.getNameById(id);
+    }
 }
