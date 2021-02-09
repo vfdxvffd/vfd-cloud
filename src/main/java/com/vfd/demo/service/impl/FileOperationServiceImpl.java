@@ -128,5 +128,8 @@ public class FileOperationServiceImpl implements FileOperationService {
         return fileOperationMapper.getFilesByType(type, owner);
     }
 
-
+    @Override
+    public Boolean keepFiles(List<FileInfo> fileInfos, Integer owner) {
+        return fileOperationMapper.saveFiles(fileInfos, owner);
+    }
 }

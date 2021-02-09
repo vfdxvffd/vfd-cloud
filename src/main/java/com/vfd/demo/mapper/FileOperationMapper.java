@@ -26,6 +26,13 @@ public interface FileOperationMapper {
     Boolean saveFile (FileInfo fileInfo);
 
     /**
+     * 批量保存文件，需指明每个文件的所有信息
+     * @param allFiles
+     * @return
+     */
+    Boolean saveFiles (@Param("allFiles") List<FileInfo> allFiles, @Param("owner") Integer owner);
+
+    /**
      * 创建文件夹
      * @param fileInfo
      * @return

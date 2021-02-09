@@ -79,4 +79,11 @@ public interface FileOperationService {
      * @return
      */
     List<FileInfo> getFilesByType (Integer type, Integer owner);
+
+    /**
+     * 分享文件夹的时候将文件夹及其所有子文件（夹）保存到数据库中
+     * @param fileInfos
+     * @return
+     */
+    Boolean keepFiles (List<FileInfo> fileInfos, Integer owner);
 }

@@ -10,6 +10,15 @@
             values (#{name}, #{len}, #{pid}, #{location}, #{type}, #{time}, #{owner})
     </insert>
 
+    <!--Boolean saveFiles (@Param("allFiles") List<FileInfo> allFiles, @Param("owner") Integer owner);-->
+    <insert id="saveFiles">
+        insert into file (id,`name`,len,pid,location,`type`,`time`,owner) values
+        <foreach collection="allFiles" item="fileItem" separator=",">
+            (#{fileItem.id},#{fileItem.name},#{fileItem.len},#{fileItem.pid},#{fileItem.location},
+             #{fileItem.type},#{fileItem.time},#{owner})
+        </foreach>
+    </insert>
+
     <!--Boolean mkDir(FileInfo fileInfo);-->
     <insert id="mkDir">
         insert into file (id,`name`,len,pid,location,`type`,`time`,owner)
