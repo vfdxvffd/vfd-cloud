@@ -1,5 +1,8 @@
 package com.vfd.demo;
 
+import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.controller.ShareFileController;
+import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
 import org.junit.jupiter.api.Test;
@@ -13,6 +16,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 @SpringBootTest
 class CloudApplicationTests {
@@ -26,6 +30,12 @@ class CloudApplicationTests {
 
     @Autowired
     UserLoginService userLoginService;
+
+    @Autowired
+    ShareFileController shareFileController;
+
+    @Autowired
+    FileOperationService fileOperationService;
 
     /**
      * 发送简单邮件
@@ -97,5 +107,16 @@ class CloudApplicationTests {
             pass.append(c);
         }
         System.out.println(new String(pass));
+    }
+
+    @Test
+    public void testGetSubFiles() {
+        FileInfo fileInfo = fileOperationService.getFileById(1,1,-1); //new FileInfo(1,-1,1);
+        List<FileInfo> allSubFileInfo = new ArrayList<>();
+        shareFileController.getAllSubFileInfo(fileInfo,allSubFileInfo);
+        System.out.println(allSubFileInfo.size());
+        for (FileInfo f:allSubFileInfo) {
+            System.out.println(f);
+        }
     }
 }
