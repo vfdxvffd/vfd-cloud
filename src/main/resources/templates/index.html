@@ -262,7 +262,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">
                             <div class="float-left" id="guide">
                                 <div class="float-left" th:each="pa:${path}">
-                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[{id}]],[[${pa.getId()}]],[[${pa.getPid()}]]);">
+                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${pa.getId()}]],[[${pa.getPid()}]]);">
                                     </a> >
                                 </div>
                                 <div class="float-left">
