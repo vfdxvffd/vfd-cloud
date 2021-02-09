@@ -14,10 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @PackageName: com.vfd.demo.controller
@@ -78,9 +75,13 @@ public class ShareFileController {
 
     @RequestMapping("/preserve-file")
     public ModelAndView preserveFile (@RequestParam("uuid") String uuid,
-                              @RequestParam("pass") String pass) {
+                                      @RequestParam("pass") String pass,
+                                      HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("loginUserId");
+        String userName = (String) session.getAttribute("loginUserName");
         ModelAndView modelAndView = null;
         Map<Object, Object> info = redisService.hmget("shareFile:" + uuid);
+        long expire = redisService.getExpire("shareFile:" + uuid);
         String realPass = (String) info.get("pass");
         if (realPass.equals(pass)) {
             //提取码正确
@@ -88,7 +89,26 @@ public class ShareFileController {
             FileInfo fileInfo = (FileInfo) info.get("fileInfo");
             FileInfo file = fileOperationService.getFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
             modelAndView.addObject("file",file);
+            int day = 60*60*24;
+            if (expire % day == 0)
+                expire = expire/day;
+            else
+                expire = expire/day + 1;
+            if (file.getType() == 0) {  //文件夹
+                modelAndView.addObject("path",new ArrayList<>());
+                modelAndView.addObject("currentDir",file);
+                List<FileInfo> all = fileOperationService.getFilesByFid(file.getId(), file.getOwner());    //所有文件
+                AccountController.getDirsAndDocs(modelAndView, all);
+            } else {
+                List<FileInfo> doc = new ArrayList<>();
+                doc.add(file);
+                modelAndView.addObject("docs",doc);
+            }
+            modelAndView.addObject("expire",expire);
+            modelAndView.addObject("id",file.getOwner());
+            modelAndView.addObject("userName",userName);
             modelAndView.addObject("ownerName", userLoginService.getNameById(file.getOwner()));
+
         } else {
             //提取码错误
             modelAndView = new ModelAndView("share-file");
@@ -108,17 +128,49 @@ public class ShareFileController {
         if (userId == null || userName == null) {
             return new ModelAndView("redirect:/");
         }
-        FileInfo fileInfo = new FileInfo(fileOperationService.getFileById(id,owner,fid));
-        FileInfo targetDir = fileOperationService.getFileById(12,2,-2);
+        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
+        FileInfo targetDir = fileOperationService.getFileById(1,1,-1);
         fileInfo.setLocation(targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName());
-        fileInfo.setOwner(userId);
         fileInfo.setPid(targetDir.getId());
         fileInfo.setTime(new Timestamp(new Date().getTime()));
-        fileOperationMapper.mkDir(fileInfo);
-        ModelAndView modelAndView = new ModelAndView("forward:/enterFile");
-        modelAndView.addObject("id",userId);
-        modelAndView.addObject("fid",targetDir.getId());
-        modelAndView.addObject("pid",targetDir.getPid());
+        List<FileInfo> allSubFiles = new ArrayList<>();
+        allSubFiles.add(fileInfo);
+        getAllSubFileInfo(fileInfo,allSubFiles);
+        fileOperationService.keepFiles(allSubFiles, userId);
+        ModelAndView modelAndView = new ModelAndView("index");
+        modelAndView.addObject("username",userName);
+        modelAndView.addObject("id",userId);     //将用户id发送到index页面
+        modelAndView.addObject("currentDir",targetDir); //用户根文件夹id
+        modelAndView.addObject("location",targetDir.getLocation());  //位置
+        List<FileInfo> all = fileOperationService.getFilesByFid(targetDir.getId(), userId);    //所有文件
+        AccountController.getDirsAndDocs(modelAndView, all);
+        modelAndView.addObject("path",getPath(id, targetDir));
         return modelAndView;
+    }
+
+    public static List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
+        String[] dirId = targetDir.getLocation().split(">");
+        ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        int pre_id = 0;
+        for (String dir : dirId) {
+            String[] split = dir.split("\\.");
+            if (split.length == 2) {
+                fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id));
+                pre_id = Integer.parseInt(split[0]);
+            }
+        }
+        return fileInfos;
+    }
+
+    public void getAllSubFileInfo(FileInfo fileInfo, List<FileInfo> result) {
+        List<FileInfo> subFiles = fileOperationService.getFilesByFid(fileInfo.getId(), fileInfo.getOwner());
+        for (FileInfo f:subFiles) {
+            f.setTime(new Timestamp(new Date().getTime()));
+            f.setLocation(fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName());
+            result.add(f);
+            if (f.getType() == 0) {
+                getAllSubFileInfo(f,result);
+            }
+        }
     }
 }
