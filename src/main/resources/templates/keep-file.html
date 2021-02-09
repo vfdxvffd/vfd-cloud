@@ -2,17 +2,351 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
     <title>Title</title>
+    <!-- Custom fonts for this template-->
+    <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+    <link
+            href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+            rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link th:href="@{/asserts/css/sb-admin-2.min.css}" rel="stylesheet">
+
+    <style type="text/css">
+        table{
+            width:70%;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);/* 阴影 */
+            border-collapse:collapse;/* 取消表格边框 */
+            letter-spacing:1px;/* 文字缩进 */
+        }
+        table,th,tr,td{
+            border-bottom:1px solid #dedede;/* 表格横线 */
+            padding:29px;
+            text-align: center;
+        }
+        progress {
+            background-color: #56BE64;
+        }
+
+        progress::-webkit-progress-bar {
+            background: #ccc;
+        }
+
+        progress::-webkit-progress-value {
+            background: #56BE64;
+        }
+
+
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+
 </head>
-<body>
-    <p th:text="${ownerName}"></p><br>
-    <p th:text="${file.getName()}"></p><br>
-    <form style="display: none" id="keep_file" action="/keep_file" method="post">
-        <input name="id" th:value="${file.getId()}">
-        <input name="fid" th:value="${file.getPid()}">
-        <input name="owner" th:value="${file.getOwner()}">
-    </form>
-    <a href="javascript:void(0);" onclick="document.getElementById('keep_file').submit();">保存到我的云盘</a>
+<body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                        <li class="nav-item dropdown no-arrow d-sm-none">
+                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-search fa-fw"></i>
+                            </a>
+                            <!-- Dropdown - Messages -->
+                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                                 aria-labelledby="searchDropdown">
+                                <form class="form-inline mr-auto w-100 navbar-search">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-light border-0 small"
+                                               placeholder="Search for..." aria-label="Search"
+                                               aria-describedby="basic-addon2">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="button">
+                                                <i class="fas fa-search fa-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </li>
+
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <!--用户名-->
+                                <span id="curr_user_name" class="mr-2 d-none d-lg-inline text-gray-600 small" th:text="${userName}"></span>
+                                <img class="img-profile rounded-circle"
+                                     src="/asserts/img/undraw_profile.svg">
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Profile
+                                </a>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Settings
+                                </a>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Activity Log
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h3 class="h3 mb-0 text-gray-800"><p th:text="'文件分享者： '+ ${ownerName}"></p></h3>
+                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" onclick="document.getElementById('keep_file').submit();">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-save"></i>
+                                        </span>
+                            <span class="text">保存到我的云盘</span>
+                        </a>
+                        <form style="display: none" id="keep_file" action="/keep_file" method="post">
+                            <input name="id" th:value="${file.getId()}">
+                            <input name="fid" th:value="${file.getPid()}">
+                            <input name="owner" th:value="${file.getOwner()}">
+                        </form>
+                    </div>
+                </div>
+
+                <!--导航栏-->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 float-left" th:if="${currentDir}">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <div class="float-left" id="guide">
+                                <div class="float-left" th:each="pa:${path}">
+                                    <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${pa.getId()}]],[[${pa.getPid()}]]);">
+                                    </a> >
+                                </div>
+                                <div class="float-left">
+                                    <p th:text="'&nbsp;' + ${currentDir.getName()}"></p>
+                                </div>
+                            </div>
+                        </h6>
+                    </div>
+
+                    <div class="card-body card mb-4 py-3 border-left-primary">
+                        <div class="table-responsive">
+                            <table class="table" id="dataTable" width="100%" cellspacing="0">
+                                <thead>
+                                <tr>
+                                    <th>文档名</th>
+                                    <th>长度</th>
+                                    <th>有效期</th>
+                                </tr>
+                                </thead>
+                                <tfoot>
+                                <tr>
+                                    <th>文档名</th>
+                                    <th>长度</th>
+                                    <th>有效期</th>
+                                </tr>
+                                </tfoot>
+                                <tbody id="dir_tbody">
+                                <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
+                                    <td>
+                                        <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],
+                                        [[${dir.getPid()}]],[[${file.getId()}]],[[${file.getOwner()}]],[[${file.getPid()}]],[[${expire}]]);">
+                                            <p th:text="${dir.getName()}"></p>
+                                        </a>
+                                    </td>
+                                    <td th:text="'--'"></td>         <!--文件夹长度不显示-->
+                                    <td th:text="${expire}+'天'"></td>
+                                </tr>
+                                </tbody>
+
+                                <tbody id="doc_tbody">
+                                <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
+                                    <td>
+                                        <p th:text="${doc.getName()}"></p>
+                                    </td>
+                                    <td th:text="${doc.convertToSize()}"></td>
+                                    <td th:text="${expire} + '天'"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Main Content -->
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; vfdxvffd.cn 2021</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">In Plan</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <!--Select "Logout" below if you are ready to end your current session.-->
+                <div class="modal-body">此功能正在加紧开发中...</div>
+                <div class="modal-footer">
+                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
+                    <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
+    <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script th:src="@{/asserts/vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script th:src="@{/asserts/js/sb-admin-2.min.js}"></script>
+
+    <!-- Page level plugins -->
+    <script th:src="@{/asserts/vendor/chart.js/Chart.min.js}"></script>
+
+    <!-- Page level custom scripts -->
+    <script th:src="@{/asserts/js/demo/chart-area-demo.js}"></script>
+    <script th:src="@{/asserts/js/demo/chart-pie-demo.js}"></script>
 
 </body>
+
+<script type="text/javascript">
+
+    function enter_into_dir(id, fid, pid, start_id, start_owner, start_fid, expire) {
+        // alert(id + ":" + start_owner);
+        // alert(fid + ":" + start_id);
+        // alert(pid + ":" + start_fid);
+        var guide_con = document.getElementById('guide');
+        var guide_html = "";
+        var dir_con = document.getElementById('dir_tbody');
+        var dir_html = "";
+        var doc_con = document.getElementById('doc_tbody');
+        var doc_html = "";
+        $.ajax({
+            type: "post",
+            url: "/enterFile",
+            data: {id: id, fid: fid, pid: pid},
+            cache: false,
+            dataType: "json",
+            success: function (result) {
+                var pathList = result.path;
+                var dirList = result.dirs;
+                var currDir = result.currentDir;
+                var docList = result.docs;
+                var flag = false;
+                //导航栏
+                $.each(pathList, function () {
+                    //alert(this.id + ":" + this.owner + ":" + this.pid);
+                    if (this.id === start_id && this.owner === start_owner && this.pid === start_fid) {
+                        flag = true;
+                    }
+                    if (flag) {
+                        guide_html += "<div class=\"float-left\">"+
+                            "                <a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
+                            "                <p>"+this.name+" ></p></a>" +
+                            "</div>";
+                    }
+                });
+                guide_html += "<div class=\"float-left\">" +
+                    "        <p>&nbsp;"+currDir.name+"</p>" +
+                    "    </div>";
+                guide_con.innerHTML = guide_html;
+                //文件夹
+                $.each(dirList, function () {
+                    dir_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td>"+
+                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
+                        "               <p>"+this.name+"</p>" +
+                        "           </a>" +
+                        "       </td>" +
+                        "       <td>--</td>" +
+                        "       <td>"+ expire +"天</td>" +
+                        "   </tr>";
+                });
+                dir_con.innerHTML = dir_html;
+                //文件
+                $.each(docList, function () {
+                    doc_html += "<tr id=\"tr"+this.id+"\">"+
+                        "<td><p>"+this.name+"</p></td>"+
+                        "<td>"+getFileSize(this.len)+"</td>"+
+                        "<td>"+ expire +"天</td></tr>";
+                });
+                doc_con.innerHTML = doc_html;
+            }
+        });
+    }
+
+    function getFileSize(fileByte) {
+        var fileSizeByte = fileByte;
+        var fileSizeMsg = "";
+        if(fileSizeByte < 1024){
+            fileSizeMsg = fileSizeByte  + "B";
+        }else if (fileSizeByte < 1048576) {
+            fileSizeMsg = window.parseFloat(((fileSizeByte / 1024)).toFixed(2)) + "KB";
+        }else if (fileSizeByte === 1048576) {
+            fileSizeMsg = "1MB";
+        }else if (fileSizeByte > 1048576 && fileSizeByte < 1073741824){
+            fileSizeMsg = window.parseFloat(((fileSizeByte / (1024 * 1024))).toFixed(2)) + "MB";
+        }else if (fileSizeByte > 1048576 && fileSizeByte === 1073741824){
+            fileSizeMsg = "1GB";
+        }else if (fileSizeByte > 1073741824 && fileSizeByte < 1099511627776){
+            fileSizeMsg = window.parseFloat(((fileSizeByte / (1024 * 1024 * 1024))).toFixed(2)) + "GB";
+        }else{
+            fileSizeMsg = "文件超过1TB";
+        }
+        return fileSizeMsg;
+    }
+
+</script>
+
 </html>
