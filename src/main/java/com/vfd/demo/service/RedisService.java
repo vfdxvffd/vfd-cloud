@@ -63,5 +63,12 @@ public interface RedisService {
      * @param key 键
      * @return 对应的多个键值
      */
-    public Map<Object, Object> hmget(String key);
+    Map<Object, Object> hmget(String key);
+
+    /**
+     * 根据key 获取过期时间
+     * @param key 键 不能为null
+     * @return 时间(秒) 返回-1代表为永久有效
+     */
+    long getExpire(String key);
 }

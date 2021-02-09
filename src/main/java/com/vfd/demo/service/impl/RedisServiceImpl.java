@@ -88,4 +88,9 @@ public class RedisServiceImpl implements RedisService {
             }
         }
     }
+
+    @Override
+    public long getExpire(String key) {
+        return redisTemplate.getExpire(key, TimeUnit.SECONDS);
+    }
 }
