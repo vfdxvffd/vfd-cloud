@@ -5,10 +5,7 @@ import com.vfd.demo.service.FileOperationService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
@@ -134,7 +131,7 @@ public class UploadFileController {
      * @return
      */
     @ResponseBody
-    @PostMapping("/enterFile")
+    @RequestMapping("/enterFile")
     public Map<String, Object> enterFile(@RequestParam("id") Integer id,
                                          @RequestParam("fid") Integer fid,
                                          @RequestParam("pid") Integer pid) {
@@ -152,18 +149,9 @@ public class UploadFileController {
         }
         result.put("dirs", dirs);
         result.put("docs", docs);
-        String[] dirId = fileInfo.getLocation().split(">");
-        ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        int pre_id = 0;
-        for (String dir : dirId) {
-            String[] split = dir.split("\\.");
-            if (split.length == 2) {
-                fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id));
-                pre_id = Integer.parseInt(split[0]);
-            }
-        }
         result.put("currentDir", fileInfo);
-        result.put("path", fileInfos);
+        List<FileInfo> path = ShareFileController.getPath(id, fileInfo);
+        result.put("path", path);
         return result;
     }
 
