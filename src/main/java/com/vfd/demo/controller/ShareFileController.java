@@ -105,7 +105,7 @@ public class ShareFileController {
                 modelAndView.addObject("docs",doc);
             }
             modelAndView.addObject("expire",expire);
-            modelAndView.addObject("id",file.getOwner());
+            modelAndView.addObject("id",userId);
             modelAndView.addObject("userName",userName);
             modelAndView.addObject("ownerName", userLoginService.getNameById(file.getOwner()));
 
@@ -122,14 +122,16 @@ public class ShareFileController {
     public ModelAndView keepFile (HttpSession session,
                                   @RequestParam("id") Integer id,
                                   @RequestParam("fid") Integer fid,
-                                  @RequestParam("owner") Integer owner) {
+                                  @RequestParam("owner") Integer owner,
+                                  @RequestParam("targetDir") String target) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
         if (userId == null || userName == null) {
             return new ModelAndView("redirect:/");
         }
         FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-        FileInfo targetDir = fileOperationService.getFileById(1,1,-1);
+        String[] s = target.split("_");
+        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
         fileInfo.setLocation(targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName());
         fileInfo.setPid(targetDir.getId());
         fileInfo.setTime(new Timestamp(new Date().getTime()));
