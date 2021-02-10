@@ -40,6 +40,48 @@
             background: #56BE64;
         }
 
+         input{
+             position: relative;
+             z-index: 2;
+         }
+        input[type="checkbox"]::before{
+            content: " " ;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            font-size: 16px;
+            background-color: #fff;
+            border-radius: 2px;
+            border: 1px solid #d9d9d9;
+        }
+        input[type="checkbox"]:checked::before{
+            content: "\2714" ;
+            color: #fff;
+            background-color: #03a9f4;
+        }
+        .check-father:checked::before{
+            content: "\2714" !important;
+            color: #fff;
+            background-color: #03a9f4;
+        }
+        .check-other:checked::before{
+            content: "\2501" !important;
+            color: #fff;
+            background-color: #03a9f4;
+        }
+
+
+
+        ul{
+            list-style-type: none;
+        }
+        .child{
+            padding-left:20px ;
+        }
 
     </style>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
@@ -127,17 +169,13 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h3 class="h3 mb-0 text-gray-800"><p th:text="'文件分享者： '+ ${ownerName}"></p></h3>
-                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" onclick="document.getElementById('keep_file').submit();">
+                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#fileTreeModal"
+                           th:onclick="get_sub_dir(-1*[[${id}]],[[${id}]],0)">
                                         <span class="icon text-white-50">
                                             <i class="fas fa-save"></i>
                                         </span>
                             <span class="text">保存到我的云盘</span>
                         </a>
-                        <form style="display: none" id="keep_file" action="/keep_file" method="post">
-                            <input name="id" th:value="${file.getId()}">
-                            <input name="fid" th:value="${file.getPid()}">
-                            <input name="owner" th:value="${file.getOwner()}">
-                        </form>
                     </div>
                 </div>
 
@@ -220,6 +258,95 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <!-- fileTree Modal-->
+    <div class="modal fade" id="fileTreeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalLabel">In Plan</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <!--Select "Logout" below if you are ready to end your current session.-->
+                <div class="modal-body">
+                    <!--<form id="keep_file" action="/keep_file" method="post">
+                        <input style="display: none" name="id" th:value="${file.getId()}">
+                        <input style="display: none" name="fid" th:value="${file.getPid()}">
+                        <input style="display: none" name="owner" th:value="${file.getOwner()}">
+                        <ul>
+                            <input type="radio" name="dir" value="1"/><li class="check-father">目录1<em class="icon-folder-open"></em>
+                                <ul>
+                                    <input type="radio" name="dir" value="2"/><li>目录1.1
+                                        <ul>
+                                            <input type="radio" name="dir" value="3" /><li class="child">目录1.1.1</li>
+                                            <li class="check-other"><input type="radio" name="dir" value="4">目录1.1.2</li>
+                                        </ul>
+                                    </li>
+                                    <li><input type="radio" name="dir" value="5">目录1.2
+                                        <ul>
+                                            <li><input type="radio" name="dir" value="6">目录1.2.1</li>
+                                            <li><input type="radio" name="dir" value="7">目录1.2.2</li>
+                                            <li><input type="radio" name="dir" value="8">目录1.2.3</li>
+                                        </ul>
+                                    </li>
+                                    <li><input type="radio" name="dir" value="9">目录1.3
+                                        <ul>
+                                            <li><input type="radio" name="dir" value="10">目录1.3.1</li>
+                                            <li><input type="radio" name="dir" value="11">目录1.3.2</li>
+                                            <li><input type="radio" name="dir" value="12">目录1.3.3</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li><input type="radio" name="dir" value="13">目录2
+                                <ul>
+                                    <li><input type="radio" name="dir" value="14">目录2.1</li>
+                                    <li><input type="radio" name="dir" value="15">目录2.2</li>
+                                    <li><input type="radio" name="dir" value="16">目录2.3</li>
+                                </ul>
+                            </li>
+
+                            <li><input type="radio" name="dir" value="1">目录3
+                                <ul>
+                                    <li><input type="radio" name="dir" value="17">目录3.1</li>
+                                    <li><input type="radio" name="dir" value="18">目录3.2</li>
+                                    <li><input type="radio" name="dir" value="19">目录3.3</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </form>-->
+                    <form id="keep_file" action="/keep_file" method="post">
+                        <input style="display: none" name="id" th:value="${file.getId()}">
+                        <input style="display: none" name="fid" th:value="${file.getPid()}">
+                        <input style="display: none" name="owner" th:value="${file.getOwner()}">
+                        <div>
+                            <ul id="ul0">
+                                <li th:id="'li_'+${id}*-1+'_'+${id}+'_0'">
+                                    <label>
+                                    <a th:id="'open_'+${id}*-1+'_'+${id}+'_0'" style="display: none" href="javascript:void(0);"
+                                       th:onclick="get_sub_dir([[-1*${id}]],[[${id}]],0)">open</a>
+                                    <a th:id="'close_'+${id}*-1+'_'+${id}+'_0'" style="display: block" href="javascript:void(0);"
+                                       th:onclick="close_sub_dir([[-1*${id}]],[[${id}]],0)">close</a>
+                                    <input type="radio" name="targetDir" th:value="-1*${id}+'_'+${id}+'_0'" th:text="全部文件"/>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
+                    <button class="btn btn-primary" onclick="document.getElementById('keep_file').submit();" type="button" data-dismiss="modal">确认</button>
+                    <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
+                </div>
+            </div>
+        </div>
+        <!--<a href="javascript:void(0);" onclick="get_sub_dir()">get</a>-->
+    </div>
+
     <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -262,10 +389,51 @@
 
 <script type="text/javascript">
 
+    $('#fileTreeModal').on('hide.bs.modal', function () {
+        document.getElementById('li0').innerHTML="全部文件";
+    });
+
+    function close_sub_dir(id, owner, fid) {
+        alert('close');
+        document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="block";
+        document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="none";
+        var element_id = "li_" + id + "_" + owner + "_" + fid;
+        $('#'+element_id+' ul').remove();
+    }
+
+    function get_sub_dir(id, owner, fid) {
+        document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="none";
+        document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="block";
+        alert('open');
+        var element_id = "li_" + id + "_" + owner + "_" + fid;
+        var dir_con = document.getElementById(element_id);
+        var dir_html = dir_con.innerHTML + "<ul>";
+        $.ajax({
+            type: "post",
+            url: "/enterFile",
+            data: {id: owner, fid: id, pid: fid},
+            cache: false,
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                var dirList = result.dirs;
+                //文件夹
+                $.each(dirList, function () {
+                    dir_html +=
+                        "        <li id=\"li_"+this.id+"_"+this.owner+"_"+this.pid+"\">"+
+                        "        <a id=\"open_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: block\" href=\"javascript:void(0);\" onclick=\"get_sub_dir("+this.id+","+this.owner+","+this.pid+")\">open</a>"+
+                        "        <a id=\"close_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: none\" href=\"javascript:void(0);\" onclick=\"close_sub_dir("+this.id+","+this.owner+","+this.pid+")\">close</a>"+
+                        "        <input type=\"radio\" name=\"targetDir\" value=\""+this.id+"_"+this.owner+"_"+this.pid+"\"/>"+this.name+
+                        "        </li>";
+                });
+                dir_html += "</ul>";
+                alert(dir_html);
+                dir_con.innerHTML = dir_html;
+            }
+        });
+    }
+
     function enter_into_dir(id, fid, pid, start_id, start_owner, start_fid, expire) {
-        // alert(id + ":" + start_owner);
-        // alert(fid + ":" + start_id);
-        // alert(pid + ":" + start_fid);
         var guide_con = document.getElementById('guide');
         var guide_html = "";
         var dir_con = document.getElementById('dir_tbody');
@@ -286,7 +454,6 @@
                 var flag = false;
                 //导航栏
                 $.each(pathList, function () {
-                    //alert(this.id + ":" + this.owner + ":" + this.pid);
                     if (this.id === start_id && this.owner === start_owner && this.pid === start_fid) {
                         flag = true;
                     }
