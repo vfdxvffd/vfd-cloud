@@ -81,6 +81,9 @@ public class ShareFileController {
                                       HttpSession session) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
+        if (userId == null || userName == null) {
+            return new ModelAndView("redirect:/");
+        }
         ModelAndView modelAndView = null;
         Map<Object, Object> info = redisService.hmget("shareFile:" + uuid);
         long expire = redisService.getExpire("shareFile:" + uuid);
