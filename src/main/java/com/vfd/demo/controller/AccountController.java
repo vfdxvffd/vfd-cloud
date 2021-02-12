@@ -14,7 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
@@ -143,23 +145,32 @@ public class AccountController {
     }
     
 
-    @GetMapping("/login")
-    public ModelAndView login(HttpSession session) {
-        Integer userId = (Integer) session.getAttribute("loginUserId");
-        String userName = (String) session.getAttribute("loginUserName");
-        if (userId == null || userName == null) {
-            return new ModelAndView("redirect:/");
+    @ResponseBody
+    @RequestMapping("/shareLogin")
+    public String shareLogin(@RequestParam("inputEmail") String inputEmail,
+                              @RequestParam("inputPassword") String inputPassword,
+                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
+        UserAccInfo login = userLoginService.login(inputEmail);
+        if (login == null) {
+            return "用户不存在";
+        } else if (!login.getPassword().equals(inputPassword)) {
+            return "密码错误";
+        } else {
+            session.setAttribute("loginUserId",login.getId());
+            session.setAttribute("loginUserName",login.getName());
+
+            Cookie cookieUserName = new Cookie("loginEmail", inputEmail);
+            Cookie cookieUserId = new Cookie("loginPassword",inputPassword);
+            cookieUserId.setMaxAge(7*24*60*60);
+            cookieUserName.setMaxAge(7*24*60*60);
+            cookieUserId.setPath(request.getContextPath());
+            cookieUserName.setPath(request.getContextPath());
+            response.addCookie(cookieUserId);
+            response.addCookie(cookieUserName);
+            return "success";
         }
-        ModelAndView modelAndView = new ModelAndView("index");
-        modelAndView.addObject("username",userName);
-        modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId,0)); //用户根文件夹id
-        modelAndView.addObject("location","");  //位置
-        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId, userId);    //所有文件
-        getDirsAndDocs(modelAndView, all);
-        ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        modelAndView.addObject("path",fileInfos);
-        return modelAndView;
     }
 
     /**
@@ -171,7 +182,9 @@ public class AccountController {
     @PostMapping("/login")
     public ModelAndView login(@RequestParam("exampleInputEmail") String exampleInputEmail,
                               @RequestParam("exampleInputPassword") String exampleInputPassword,
-                              HttpSession session) {
+                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
         ModelAndView modelAndView = new ModelAndView("login");
         UserAccInfo login = userLoginService.login(exampleInputEmail);
         if (login == null) {
@@ -191,10 +204,18 @@ public class AccountController {
             List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId(), login.getId());    //所有文件
             getDirsAndDocs(modelAndView, all);
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
-//            fileInfos.add(new FileInfo(-1*login,"allFiles"));
             modelAndView.addObject("path",fileInfos);
             session.setAttribute("loginUserId",login.getId());
             session.setAttribute("loginUserName",login.getName());
+
+            Cookie cookieUserName = new Cookie("loginEmail", exampleInputEmail);
+            Cookie cookieUserId = new Cookie("loginPassword",exampleInputPassword);
+            cookieUserId.setMaxAge(7*24*60*60);
+            cookieUserName.setMaxAge(7*24*60*60);
+            cookieUserId.setPath(request.getContextPath());
+            cookieUserName.setPath(request.getContextPath());
+            response.addCookie(cookieUserId);
+            response.addCookie(cookieUserName);
             //logger.info("login:用户登陆成功，id为："+login);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login.getId());
         }
