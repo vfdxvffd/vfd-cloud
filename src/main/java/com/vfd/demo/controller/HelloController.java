@@ -1,5 +1,7 @@
 package com.vfd.demo.controller;
 
+import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @PackageName: com.vfd.cloud.controller
@@ -20,17 +26,35 @@ public class HelloController {
 
     @Autowired
     RedisService redisService;
+    @Autowired
+    FileOperationService fileOperationService;
 
     //记录日志
     Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
-     * 将/映射到登陆页
+     * 映射到登陆页
      * @return
      */
-    @RequestMapping("/")
+    @RequestMapping("/pages/login")
     public String index() {
         return "login";
+    }
+
+    @RequestMapping("/")
+    public ModelAndView login(HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("loginUserId");
+        String userName = (String) session.getAttribute("loginUserName");
+        ModelAndView modelAndView = new ModelAndView("index");
+        modelAndView.addObject("username",userName);
+        modelAndView.addObject("id",userId);     //将用户id发送到index页面
+        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId,0)); //用户根文件夹id
+        modelAndView.addObject("location","");  //位置
+        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId, userId);    //所有文件
+        AccountController.getDirsAndDocs(modelAndView, all);
+        ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        modelAndView.addObject("path",fileInfos);
+        return modelAndView;
     }
 
     /**
