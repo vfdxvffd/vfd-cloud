@@ -172,7 +172,7 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h3 class="h3 mb-0 text-gray-800"><p th:text="'文件分享者： '+ ${ownerName}"></p></h3>
-                        <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#fileTreeModal"
+                        <a th:if="${#strings.isEmpty(self)}" href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal" data-target="#fileTreeModal"
                            th:onclick="get_sub_dir(-1*[[${id}]],[[${id}]],0)">
                                         <span class="icon text-white-50">
                                             <i class="fas fa-save"></i>
@@ -263,12 +263,12 @@
 
     <!-- fileTree Modal-->
     <div class="modal fade" id="fileTreeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
+         aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="ModalLabel">In Plan</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <button class="close" type="button" th:onclick="close_modal([[${id}]]);" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
@@ -293,8 +293,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                    <a onclick="document.getElementById('keep_file').submit();"
+                    <button class="btn btn-secondary" th:onclick="close_modal([[${id}]]);" type="button" data-dismiss="modal">取消</button>
+                    <a th:onclick="save_file([[${id}]],[[${file.getOwner()}]]);"
                        class="btn btn-primary" href="javascript:void(0)">确认</a>
                 </div>
             </div>
@@ -323,6 +323,29 @@
         </div>
     </div>
 
+    <!-- warning Modal-->
+    <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="warningModalLabel">In Plan</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <!--Select "Logout" below if you are ready to end your current session.-->
+                <div class="modal-body">不能保存自己分享的文件哦，文件的复制和移动功能正在开发中...</div>
+                <div class="modal-footer">
+                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
+                    <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
@@ -343,9 +366,23 @@
 
 <script type="text/javascript">
 
-    $('#fileTreeModal').on('hide.bs.modal', function () {
-        document.getElementById('li0').innerHTML="全部文件";
-    });
+    function close_modal(id) {
+        var li_id = "li_"+(id*-1)+"_"+id+"_0";
+        var open_id = "open_"+(id*-1)+"_"+id+"_0";
+        var close_id = "close_"+(id*-1)+"_"+id+"_0";
+        $('#'+li_id+' ul').remove();
+        document.getElementById(open_id).style.display="none";
+        document.getElementById(close_id).style.display="block";
+    }
+
+    function save_file(id, file_owner) {
+        if (file_owner === id) {
+            $('#warningModal').modal("show");
+            return false;
+        } else {
+            document.getElementById('keep_file').submit();
+        }
+    }
 
     function close_sub_dir(id, owner, fid) {
         document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="block";
