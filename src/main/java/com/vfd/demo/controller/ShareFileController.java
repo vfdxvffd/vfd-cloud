@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -89,6 +91,9 @@ public class ShareFileController {
             FileInfo fileInfo = (FileInfo) info.get("fileInfo");
             FileInfo file = fileOperationService.getFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
             modelAndView.addObject("file",file);
+            if (file.getOwner() == userId) {
+                modelAndView.addObject("self","true");
+            }
             int day = 60*60*24;
             if (expire % day == 0)
                 expire = expire/day;
@@ -138,7 +143,18 @@ public class ShareFileController {
         List<FileInfo> allSubFiles = new ArrayList<>();
         allSubFiles.add(fileInfo);
         getAllSubFileInfo(fileInfo,allSubFiles);
-        fileOperationService.keepFiles(allSubFiles, userId);
+        try {
+            fileOperationService.keepFiles(allSubFiles, userId);
+        } catch (Exception e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLIntegrityConstraintViolationException) {
+                String sqlState = ((SQLIntegrityConstraintViolationException) cause).getSQLState();
+                System.out.println(sqlState);
+            } else {
+                System.out.println("保存Person信息 失败，原因："+ e);
+            }
+
+        }
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
