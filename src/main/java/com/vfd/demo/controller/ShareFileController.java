@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -75,15 +76,27 @@ public class ShareFileController {
         return modelAndView;
     }
 
+    @RequestMapping("/test")
+    public ModelAndView test(HttpServletRequest request, HttpSession session) {
+//        request.setAttribute("uuid","123");
+//        request.setAttribute("pass","321");
+        ModelAndView modelAndView = new ModelAndView("redirect:/preserve-file");
+        modelAndView.addObject("uuid","123");
+        modelAndView.addObject("pass","pass");
+        session.setAttribute("loginUserId",1);
+        session.setAttribute("loginUserName","hahaha");
+        return modelAndView;
+    }
+
     @RequestMapping("/preserve-file")
     public ModelAndView preserveFile (@RequestParam("uuid") String uuid,
                                       @RequestParam("pass") String pass,
                                       HttpSession session) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
-        if (userId == null || userName == null) {
-            return new ModelAndView("redirect:/");
-        }
+//        if (userId == null || userName == null) {
+//            return new ModelAndView("redirect:/");
+//        }
         ModelAndView modelAndView = null;
         Map<Object, Object> info = redisService.hmget("shareFile:" + uuid);
         long expire = redisService.getExpire("shareFile:" + uuid);
@@ -91,11 +104,15 @@ public class ShareFileController {
         if (realPass.equals(pass)) {
             //提取码正确
             modelAndView = new ModelAndView("keep-file");
+            modelAndView.addObject("uuid",uuid);
+            modelAndView.addObject("pass",pass);
             FileInfo fileInfo = (FileInfo) info.get("fileInfo");
             FileInfo file = fileOperationService.getFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
             modelAndView.addObject("file",file);
-            if (file.getOwner() == userId) {
-                modelAndView.addObject("self","true");
+            if (userId != null) {
+                modelAndView.addObject("id",userId);
+                if (file.getOwner() == userId)
+                    modelAndView.addObject("self","true");
             }
             int day = 60*60*24;
             if (expire % day == 0)
@@ -113,7 +130,7 @@ public class ShareFileController {
                 modelAndView.addObject("docs",doc);
             }
             modelAndView.addObject("expire",expire);
-            modelAndView.addObject("id",userId);
+
             modelAndView.addObject("userName",userName);
             modelAndView.addObject("ownerName", userLoginService.getNameById(file.getOwner()));
 
@@ -134,9 +151,9 @@ public class ShareFileController {
                                   @RequestParam("targetDir") String target) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
-        if (userId == null || userName == null) {
-            return new ModelAndView("redirect:/");
-        }
+//        if (userId == null || userName == null) {
+//            return new ModelAndView("redirect:/");
+//        }
         FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
         String[] s = target.split("_");
         FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
