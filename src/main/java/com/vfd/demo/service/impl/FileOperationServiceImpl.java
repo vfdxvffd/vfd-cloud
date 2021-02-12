@@ -129,6 +129,7 @@ public class FileOperationServiceImpl implements FileOperationService {
     }
 
     @Override
+    @Transactional
     public Boolean keepFiles(List<FileInfo> fileInfos, Integer owner) {
         return fileOperationMapper.saveFiles(fileInfos, owner);
     }
