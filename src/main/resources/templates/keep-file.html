@@ -262,7 +262,7 @@
     </a>
 
     <!-- fileTree Modal-->
-    <div class="modal fade" id="fileTreeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div th:if="${not #strings.isEmpty(id)}" class="modal fade" id="fileTreeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -279,7 +279,7 @@
                         <input style="display: none" name="owner" th:value="${file.getOwner()}">
                         <div>
                             <ul id="ul0">
-                                <li th:id="'li_'+${id}*-1+'_'+${id}+'_0'">
+                                <li th:if="${not #strings.isEmpty(id)}" th:id="'li_'+${id}*-1+'_'+${id}+'_0'">
                                     <a class="float-left" th:id="'open_'+${id}*-1+'_'+${id}+'_0'" style="display: none" href="javascript:void(0);"
                                        th:onclick="get_sub_dir([[-1*${id}]],[[${id}]],0)">
                                         <div class="addBtn"></div></a>
@@ -293,7 +293,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" th:onclick="close_modal([[${id}]]);" type="button" data-dismiss="modal">取消</button>
+                    <button id="fileTreeButton" class="btn btn-secondary" th:onclick="close_modal([[${id}]]);" type="button" data-dismiss="modal">取消</button>
                     <a th:onclick="save_file([[${id}]],[[${file.getOwner()}]]);"
                        class="btn btn-primary" href="javascript:void(0)">确认</a>
                 </div>
@@ -345,6 +345,50 @@
         </div>
     </div>
 
+    <!-- login Modal-->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="user" id="user_share_login" method="post" action="/shareLogin">
+                        <div class="form-group" id="login_info">
+
+                        </div>
+                        <!--<input name="inputEmail" id="inputEmail" type="email">
+                        <input name="inputPassword" id="inputPassword" type="email">-->
+                        <div class="form-group">
+                            <input type="email" class="form-control form-control-user"
+                                   id="inputEmail" name="inputEmail" aria-describedby="emailHelp"
+                                   placeholder="Enter Email Address...">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control form-control-user"
+                                   id="inputPassword" name="inputPassword" placeholder="Password">
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox small">
+                                <input type="checkbox" class="custom-control-input" name="customCheck" id="customCheck">
+                                <label class="custom-control-label" for="customCheck">Remember
+                                    Me</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                    <a class="btn btn-primary" href="javascript:void(0);" th:onclick="share_login([[${uuid}]],[[${pass}]])">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
@@ -367,6 +411,7 @@
 <script type="text/javascript">
 
     function close_modal(id) {
+        alert("id = " + id);
         var li_id = "li_"+(id*-1)+"_"+id+"_0";
         var open_id = "open_"+(id*-1)+"_"+id+"_0";
         var close_id = "close_"+(id*-1)+"_"+id+"_0";
@@ -384,6 +429,29 @@
         }
     }
 
+    function share_login(uuid, pass) {
+        document.getElementById('login_info').innerHTML="";
+        $.ajax({
+            type: "post",
+            url: "/shareLogin",
+            data: $('#user_share_login').serialize(),
+            cache: false,
+            dataType: "text",
+            success: function (result) {
+                if (result === "success") {
+                    var params = {
+                        "uuid": uuid,
+                        "pass": pass
+                    };
+                    httpPost("/preserve-file",params);
+                    return false;
+                } else {
+                    document.getElementById('login_info').innerHTML="<p style=\"color: red\"\">" + result + "</p>";
+                }
+            }
+        });
+    }
+
     function close_sub_dir(id, owner, fid) {
         document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="block";
         document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="none";
@@ -392,6 +460,10 @@
     }
 
     function get_sub_dir(id, owner, fid) {
+        if (owner == null) {
+            $('#loginModal').modal("show");
+            return false;
+        }
         document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="none";
         document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="block";
         var element_id = "li_" + id + "_" + owner + "_" + fid;
@@ -479,6 +551,26 @@
                 doc_con.innerHTML = doc_html;
             }
         });
+    }
+
+    //发送POST请求跳转到指定页面
+    function httpPost(URL, PARAMS) {
+        var temp = document.createElement("form");
+        temp.action = URL;
+        temp.method = "post";
+        temp.style.display = "none";
+
+        for (var x in PARAMS) {
+            var opt = document.createElement("textarea");
+            opt.name = x;
+            opt.value = PARAMS[x];
+            temp.appendChild(opt);
+        }
+
+        document.body.appendChild(temp);
+        temp.submit();
+
+        return temp;
     }
 
     function getFileSize(fileByte) {
