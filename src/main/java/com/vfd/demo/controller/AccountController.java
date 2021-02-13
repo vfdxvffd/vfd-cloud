@@ -56,7 +56,6 @@ public class AccountController {
         verificationCode = getVerificationCode();
         //先检查是否已存在此邮箱
         if (userLoginService.isExist(email)) {
-            //logger.info("sendCode:重复的email注册：" + email);
             return "exitEmail";
         }
         Map<String,String> map = new HashMap<>(9);
@@ -66,13 +65,6 @@ public class AccountController {
         map.put("title","vfd-cloud");
         map.put("context","your verification code is : " + verificationCode);
         map.put("html","false");
-        /*try {
-            sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud","your verification code is : " + verificationCode);
-        } catch (Exception e) {
-            logger.warn("sendCode:注册验证码邮件发送失败,email:" + email);
-            logger.warn("sendCode:" + e.toString());
-            return "exception";
-        }*/
         //将验证码存到缓存中
         map.put("key",email+":verificationCode");
         map.put("val",verificationCode);
@@ -80,7 +72,6 @@ public class AccountController {
         //记录日志
         map.put("log","sendCode:用户注册发送验证码,email:" + email);
         rabbitTemplate.convertAndSend("account.topic","account.sendCode",map);
-        //redisService.set(email+":verificationCode",verificationCode,60);
         return "success";
     }
 
@@ -106,30 +97,24 @@ public class AccountController {
         if (!exampleInputPassword.equals(exampleRepeatPassword)) {
             modelAndView.addObject("err","两次输入密码不一致");
             rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
-            //logger.info("register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
             return modelAndView;
         }
         String verificationCode = (String) redisService.get(exampleInputEmail+":verificationCode");
         if (verificationCode == null) {
             modelAndView.addObject("err","验证码过期");
             rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码过期,email:" + exampleInputEmail);
-            //logger.info("register:用户注册时验证码过期,email:" + exampleInputEmail);
         } else if (!exampleInputVerification.equals(verificationCode)) {  //验证码错误
             modelAndView.addObject("err","验证码错误");
             rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
-            //logger.info("register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
         } else {    //验证码正确
             Integer register = userLoginService.register(exampleFirstName + exampleLastName, exampleInputEmail, exampleInputPassword);
             if (register == -1) {
                 modelAndView.addObject("err","用户邮箱已存在");
                 rabbitTemplate.convertAndSend("log.direct","info","register:用户邮箱重复注册，email:" + exampleInputEmail);
-                //logger.info("register:用户邮箱重复注册，email:" + exampleInputEmail);
             } else if (register == 0) {
                 modelAndView.addObject("err","注册失败，请重试");
                 rabbitTemplate.convertAndSend("log.direct","error","register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
-                //logger.error("register：注册失败，可能服务器或数据库出错，email:" + exampleInputEmail);
             } else {
-                //fileOperationService.saveFile(new FileInfo(-1*register,"allFiles",1,0,-1*register+".allFiles",0));
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","注册成功，请登陆");
                 //验证设置过期，删除验证码
@@ -137,8 +122,6 @@ public class AccountController {
                 map.put("del",exampleInputEmail+":verificationCode");
                 map.put("log","register：注册成功！新用户id为：" + register);
                 rabbitTemplate.convertAndSend("account.topic","account.register",map);
-                /*redisService.del(exampleInputEmail+":verificationCode");
-                logger.info("register：注册成功！新用户id为：" + register);*/
             }
         }
         return modelAndView;
@@ -149,6 +132,7 @@ public class AccountController {
     @RequestMapping("/shareLogin")
     public String shareLogin(@RequestParam("inputEmail") String inputEmail,
                               @RequestParam("inputPassword") String inputPassword,
+                              @RequestParam("customCheck") String remember,
                               HttpSession session,
                               HttpServletRequest request,
                               HttpServletResponse response) {
@@ -160,15 +144,9 @@ public class AccountController {
         } else {
             session.setAttribute("loginUserId",login.getId());
             session.setAttribute("loginUserName",login.getName());
-
-            Cookie cookieUserName = new Cookie("loginEmail", inputEmail);
-            Cookie cookieUserId = new Cookie("loginPassword",inputPassword);
-            cookieUserId.setMaxAge(7*24*60*60);
-            cookieUserName.setMaxAge(7*24*60*60);
-            cookieUserId.setPath(request.getContextPath());
-            cookieUserName.setPath(request.getContextPath());
-            response.addCookie(cookieUserId);
-            response.addCookie(cookieUserName);
+            if (!"".equals(remember)) {     //记住我功能
+                rememberMe(inputEmail, inputPassword, request, response);
+            }
             return "success";
         }
     }
@@ -182,6 +160,7 @@ public class AccountController {
     @PostMapping("/login")
     public ModelAndView login(@RequestParam("exampleInputEmail") String exampleInputEmail,
                               @RequestParam("exampleInputPassword") String exampleInputPassword,
+                              @RequestParam("customCheck") String remember,
                               HttpSession session,
                               HttpServletRequest request,
                               HttpServletResponse response) {
@@ -189,11 +168,9 @@ public class AccountController {
         UserAccInfo login = userLoginService.login(exampleInputEmail);
         if (login == null) {
             modelAndView.addObject("err","用户不存在");
-            //logger.info("login:一个不存在的用户登陆，email:" + exampleInputEmail);
             rabbitTemplate.convertAndSend("log.direct","info","login:一个不存在的用户登陆，email:" + exampleInputEmail);
         } else if (!login.getPassword().equals(exampleInputPassword)) {
             modelAndView.addObject("err","密码错误");
-            //logger.info("login:用户登陆密码错误,email:" + exampleInputEmail);
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆密码错误,email:" + exampleInputEmail);
         } else {
             modelAndView = new ModelAndView("index");
@@ -207,19 +184,23 @@ public class AccountController {
             modelAndView.addObject("path",fileInfos);
             session.setAttribute("loginUserId",login.getId());
             session.setAttribute("loginUserName",login.getName());
-
-            Cookie cookieUserName = new Cookie("loginEmail", exampleInputEmail);
-            Cookie cookieUserId = new Cookie("loginPassword",exampleInputPassword);
-            cookieUserId.setMaxAge(7*24*60*60);
-            cookieUserName.setMaxAge(7*24*60*60);
-            cookieUserId.setPath(request.getContextPath());
-            cookieUserName.setPath(request.getContextPath());
-            response.addCookie(cookieUserId);
-            response.addCookie(cookieUserName);
-            //logger.info("login:用户登陆成功，id为："+login);
+            if (!"".equals(remember)) {     //记住我功能
+                rememberMe(exampleInputEmail, exampleInputPassword, request, response);
+            }
             rabbitTemplate.convertAndSend("log.direct","info","login:用户登陆成功，id为："+login.getId());
         }
         return modelAndView;
+    }
+
+    public void rememberMe(String exampleInputEmail, String exampleInputPassword, HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookieUserName = new Cookie("loginEmail", exampleInputEmail);
+        Cookie cookieUserId = new Cookie("loginPassword",exampleInputPassword);
+        cookieUserId.setMaxAge(7*24*60*60);
+        cookieUserName.setMaxAge(7*24*60*60);
+        cookieUserId.setPath(request.getContextPath());
+        cookieUserName.setPath(request.getContextPath());
+        response.addCookie(cookieUserId);
+        response.addCookie(cookieUserName);
     }
 
     public static void getDirsAndDocs(ModelAndView modelAndView, List<FileInfo> all) {
@@ -246,7 +227,6 @@ public class AccountController {
     public String forget_password(String email) {
         //先检查邮箱
         if (!userLoginService.isExist(email)) {     //用户未注册
-            //logger.info("forget_password:一个未注册的用户修改密码,email:" + email);
             return "notExist";
         }
         //生成uuid
@@ -260,15 +240,12 @@ public class AccountController {
         map.put("title","vfd-cloud");
         map.put("context",context);
         map.put("html","true");
-        //sendMessage.sendMeg(SOURCE_EMAIL_ADDRESS,email,"vfd-cloud",context,true);
         //加入uuid入redis
         map.put("key",email+":uuid");
         map.put("val",uuid);
         map.put("time","60");
-        //redisService.set(email+":uuid",uuid,60);
         //记录日志
         map.put("log","forget_password:用户修改密码,email:" + email);
-        //logger.info("forget_password:用户修改密码,email:" + email);
         rabbitTemplate.convertAndSend("account.topic","account.sendUUid",map);
         return "success";
     }
@@ -300,10 +277,8 @@ public class AccountController {
                 map.put("del",email+":uuid");
                 map.put("log","reset_password:用户密码修改成功，email:" + email);
                 rabbitTemplate.convertAndSend("account.topic","account.reset",map);
-                //redisService.del(email+":uuid");       //删除缓存
                 modelAndView = new ModelAndView("login");
                 modelAndView.addObject("msg","密码修改成功，请登录");
-                //logger.info("reset_password:用户密码修改成功，email:" + email);
             } else {
                 modelAndView = new ModelAndView("reset-password");
                 modelAndView.addObject("err","密码修改失败，请重试");
@@ -312,6 +287,25 @@ public class AccountController {
             }
         }
         return modelAndView;
+    }
+
+    @RequestMapping("/logout")
+    public String logout (HttpSession session,
+                          HttpServletRequest request,
+                          HttpServletResponse response) {
+        //销毁session存储的信息
+        session.removeAttribute("loginUserId");
+        session.removeAttribute("loginUserName");
+
+        Cookie cookieUserName = new Cookie("loginEmail", "");
+        Cookie cookieUserId = new Cookie("loginPassword","");
+        cookieUserId.setMaxAge(0);
+        cookieUserName.setMaxAge(0);
+        cookieUserId.setPath(request.getContextPath());
+        cookieUserName.setPath(request.getContextPath());
+        response.addCookie(cookieUserId);
+        response.addCookie(cookieUserName);
+        return "login";
     }
 
     /**
