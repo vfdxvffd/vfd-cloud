@@ -1,20 +1,23 @@
 package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.bean.UserAccInfo;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
+import com.vfd.demo.utils.MagicValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -52,24 +55,27 @@ public class ShareFileController {
         }
         result.put("pass",new String(pass));
         UUID uuid = UUID.randomUUID();
-        result.put("link","http://localhost:8080/pages/share-file?uuid=" + uuid);
+        result.put("link", MagicValue.linkPrefix+"/pages/share-file?sharer=" + owner + "&uuid=" + uuid);
         //将待分享的文件信息和生成的提取码以及验证UUID存入缓存中，时间设定为time天
         Map<String,Object> info = new HashMap<>();
         info.put("pass",new String(pass));
         info.put("fileInfo", new FileInfo(id,fid,owner));
-        redisService.hmset("shareFile:"+uuid,info,time*24*60*60);
+        String key = "shareFile:"+owner+":"+uuid;
+        redisService.hmset(key,info,time*24*60*60);
         return result;
     }
 
     //分享文件，保存文件
 
     @RequestMapping("/pages/share-file")
-    public ModelAndView shareFile(String uuid) {
+    public ModelAndView shareFile(String uuid, Integer sharer) {
         ModelAndView modelAndView = null;
-        boolean hasKey = redisService.hasKey("shareFile:"+uuid);
+        String key = "shareFile:"+sharer+":"+uuid;
+        boolean hasKey = redisService.hasKey(key);
         if (hasKey) {
             modelAndView = new ModelAndView("share-file");
             modelAndView.addObject("uuid",uuid);
+            modelAndView.addObject("sharer",sharer);
         } else {
             modelAndView = new ModelAndView("blank");
         }
@@ -91,21 +97,47 @@ public class ShareFileController {
     @RequestMapping("/preserve-file")
     public ModelAndView preserveFile (@RequestParam("uuid") String uuid,
                                       @RequestParam("pass") String pass,
+                                      @RequestParam("sharer") Integer sharer,
+                                      HttpServletRequest request,
                                       HttpSession session) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
-//        if (userId == null || userName == null) {
-//            return new ModelAndView("redirect:/");
-//        }
+        if (userId == null || userName == null) {
+            //从Cookie获取
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                String userEmail = null;
+                String userPassword = null;
+                for (Cookie item:cookies) {
+                    if ("loginEmail".equals(item.getName())) {
+                        userEmail = item.getValue();
+                    } else if ("loginPassword".equals(item.getName())) {
+                        userPassword = item.getValue();
+                    }
+                }
+                if (userEmail != null && userPassword != null) {
+                    UserAccInfo login = userLoginService.login(userEmail);
+                    System.out.println("login:"+login);
+                    if (login != null && userPassword.equals(login.getPassword())) {
+                        session.setAttribute("loginUserId",login.getId());
+                        session.setAttribute("loginUserName",login.getName());
+                        userId = login.getId();
+                        userName = login.getName();
+                    }
+                }
+            }
+        }
         ModelAndView modelAndView = null;
-        Map<Object, Object> info = redisService.hmget("shareFile:" + uuid);
-        long expire = redisService.getExpire("shareFile:" + uuid);
+        String key = "shareFile:"+sharer+":"+uuid;
+        Map<Object, Object> info = redisService.hmget(key);
+        long expire = redisService.getExpire(key);
         String realPass = (String) info.get("pass");
         if (realPass.equals(pass)) {
             //提取码正确
             modelAndView = new ModelAndView("keep-file");
             modelAndView.addObject("uuid",uuid);
             modelAndView.addObject("pass",pass);
+            modelAndView.addObject("sharer",sharer);
             FileInfo fileInfo = (FileInfo) info.get("fileInfo");
             FileInfo file = fileOperationService.getFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
             modelAndView.addObject("file",file);
@@ -151,9 +183,6 @@ public class ShareFileController {
                                   @RequestParam("targetDir") String target) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
-//        if (userId == null || userName == null) {
-//            return new ModelAndView("redirect:/");
-//        }
         FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
         String[] s = target.split("_");
         FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
@@ -163,18 +192,7 @@ public class ShareFileController {
         List<FileInfo> allSubFiles = new ArrayList<>();
         allSubFiles.add(fileInfo);
         getAllSubFileInfo(fileInfo,allSubFiles);
-        try {
-            fileOperationService.keepFiles(allSubFiles, userId);
-        } catch (Exception e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof SQLIntegrityConstraintViolationException) {
-                String sqlState = ((SQLIntegrityConstraintViolationException) cause).getSQLState();
-                System.out.println(sqlState);
-            } else {
-                System.out.println("保存Person信息 失败，原因："+ e);
-            }
-
-        }
+        fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
