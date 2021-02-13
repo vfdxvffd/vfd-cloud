@@ -286,7 +286,8 @@
                                     <a class="float-left" th:id="'close_'+${id}*-1+'_'+${id}+'_0'" style="display: block" href="javascript:void(0);"
                                        th:onclick="close_sub_dir([[-1*${id}]],[[${id}]],0)">
                                         <div class="subBtn"></div></a>
-                                    <input type="radio" name="targetDir" th:value="-1*${id}+'_'+${id}+'_0'" /><span>全部文件</span>
+                                    <input type="radio" name="targetDir" id="targetDir" th:value="-1*${id}+'_'+${id}+'_0'" />
+                                    <label class="custom-radio" for="targetDir">全部文件</label>
                                 </li>
                             </ul>
                         </div>
@@ -361,8 +362,6 @@
                         <div class="form-group" id="login_info">
 
                         </div>
-                        <!--<input name="inputEmail" id="inputEmail" type="email">
-                        <input name="inputPassword" id="inputPassword" type="email">-->
                         <div class="form-group">
                             <input type="email" class="form-control form-control-user"
                                    id="inputEmail" name="inputEmail" aria-describedby="emailHelp"
@@ -375,15 +374,15 @@
                         <div class="form-group">
                             <div class="custom-control custom-checkbox small">
                                 <input type="checkbox" class="custom-control-input" name="customCheck" id="customCheck">
-                                <label class="custom-control-label" for="customCheck">Remember
-                                    Me</label>
+                                <label class="custom-control-label" for="customCheck">7天免登录</label>
+                                <input type="hidden" name="customCheck">
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                    <a class="btn btn-primary" href="javascript:void(0);" th:onclick="share_login([[${uuid}]],[[${pass}]])">Login</a>
+                    <a class="btn btn-primary" href="javascript:void(0);" th:onclick="share_login([[${uuid}]],[[${pass}]],[[${sharer}]])">Login</a>
                 </div>
             </div>
         </div>
@@ -411,7 +410,6 @@
 <script type="text/javascript">
 
     function close_modal(id) {
-        alert("id = " + id);
         var li_id = "li_"+(id*-1)+"_"+id+"_0";
         var open_id = "open_"+(id*-1)+"_"+id+"_0";
         var close_id = "close_"+(id*-1)+"_"+id+"_0";
@@ -429,7 +427,7 @@
         }
     }
 
-    function share_login(uuid, pass) {
+    function share_login(uuid, pass, sharer) {
         document.getElementById('login_info').innerHTML="";
         $.ajax({
             type: "post",
@@ -441,7 +439,8 @@
                 if (result === "success") {
                     var params = {
                         "uuid": uuid,
-                        "pass": pass
+                        "pass": pass,
+                        "sharer": sharer
                     };
                     httpPost("/preserve-file",params);
                     return false;
@@ -478,16 +477,18 @@
             success: function (result) {
                 console.log(result);
                 var dirList = result.dirs;
-                //文件夹
+                //文件夹this.name+     id=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\"
                 $.each(dirList, function () {
                     dir_html +=
                         "        <li id=\"li_"+this.id+"_"+this.owner+"_"+this.pid+"\"><div>"+
                         "        <div class='float-left'><a id=\"open_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: block\" href=\"javascript:void(0);\" onclick=\"get_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"addBtn\"></div></a></div>"+
                         "        <div class='float-left'><a id=\"close_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: none\" href=\"javascript:void(0);\" onclick=\"close_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"subBtn\"></div></a></div>"+
-                        "        <div ><input type=\"radio\" name=\"targetDir\" value=\""+this.id+"_"+this.owner+"_"+this.pid+"\"/>"+this.name+"</div>"+
+                        "        <div ><input type=\"radio\" name=\"targetDir\" id=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\" value=\""+this.id+"_"+this.owner+"_"+this.pid+"\"/>"+
+                        "        <label class=\"custom-radio\" for=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\">"+this.name+"</label></div>"+
                         "        </div></li>";
                 });
                 dir_html += "</ul>";
+                //alert(dir_html);
                 dir_con.innerHTML = dir_html;
             }
         });
