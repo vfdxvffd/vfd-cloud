@@ -2,12 +2,15 @@ package com.vfd.demo.service.impl;
 
 import com.vfd.demo.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,5 +95,19 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public long getExpire(String key) {
         return redisTemplate.getExpire(key, TimeUnit.SECONDS);
+    }
+
+
+    public List<String> getKey(String pattern) {
+        RedisConnection connection = RedisConnectionUtils.getConnection(Objects.requireNonNull(redisTemplate.getConnectionFactory()));
+        Cursor<byte[]> result = connection.scan(new ScanOptions.ScanOptionsBuilder().count(10).match(pattern).build());
+        List<String> allKeys = new ArrayList<>();
+        //cursor有id和position这两个属性，id则对应 scan cursor 的cursor的值，poisition则是当前遍历到第几个
+        while (result.hasNext()) {//这里可以改用for循环来获取指定数量的key
+            String key=new String(result.next());
+            //对key的操作，或者先放到一个集合里面，然后再进行后续操作
+            allKeys.add(key);
+        }
+        return allKeys;
     }
 }

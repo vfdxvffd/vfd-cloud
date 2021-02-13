@@ -1,5 +1,6 @@
 package com.vfd.demo.service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,4 +72,10 @@ public interface RedisService {
      * @return 时间(秒) 返回-1代表为永久有效
      */
     long getExpire(String key);
+
+    /**
+     * 模糊匹配key
+     * @param pattern
+     */
+    List<String> getKey(String pattern);
 }
