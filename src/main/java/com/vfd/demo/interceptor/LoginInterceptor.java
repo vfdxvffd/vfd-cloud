@@ -27,43 +27,41 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         System.out.println("拦截了：" + request.getRequestURL());
+        HttpSession session = request.getSession();
+        Object loginUserId = session.getAttribute("loginUserId");
+        Object loginUserName = session.getAttribute("loginUserName");
+        //&& loginUserName.equals(userLoginService.getNameById((Integer) loginUserId))
+        if (loginUserId != null && loginUserName != null) { //如果session中有信息说明已经登录
+            return true;
+        }
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
-//            request.setAttribute("err","无权限访问，请先登陆");
+            //request.setAttribute("err","无权限访问，请先登陆");
             request.getRequestDispatcher("/pages/login").forward(request,response);
             return false;
         }
         String userEmail = null;
-        Integer userPassword = null;
+        String userPassword = null;
         for (Cookie item:cookies) {
             if ("loginEmail".equals(item.getName())) {
                 userEmail = item.getValue();
             } else if ("loginPassword".equals(item.getName())) {
-                userPassword = Integer.parseInt(item.getValue());
+                userPassword = item.getValue();
             }
         }
         if (userEmail == null || userPassword == null) {
-//            request.setAttribute("err","无权限访问，请先登陆");
-            System.out.println("为null");
+            //request.setAttribute("err","无权限访问，请先登陆");
             request.getRequestDispatcher("/pages/login").forward(request,response);
             return false;
         }
-        HttpSession session = request.getSession();
-        Object loginUserId = session.getAttribute("loginUserId");
-        Object loginUserName = session.getAttribute("loginUserName");
-        System.out.println("id：" + loginUserId);
-        System.out.println("name：" + loginUserName);
-        if (loginUserId == null || loginUserName == null) {
-            UserAccInfo login = userLoginService.login(userEmail);
-            if (login == null) {
-                System.out.println("login == null");
-//                request.setAttribute("err","无权限访问，请先登陆");
-                request.getRequestDispatcher("/pages/login").forward(request,response);
-                return false;
-            }
-            session.setAttribute("loginUserId",login.getId());
-            session.setAttribute("loginUserName",login.getName());
+        UserAccInfo login = userLoginService.login(userEmail);
+        if (login == null || !userPassword.equals(login.getPassword())) {
+            //request.setAttribute("err","无权限访问，请先登陆");
+            request.getRequestDispatcher("/pages/login").forward(request,response);
+            return false;
         }
+        session.setAttribute("loginUserId",login.getId());
+        session.setAttribute("loginUserName",login.getName());
         return true;
     }
 }
