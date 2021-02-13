@@ -90,6 +90,7 @@ public class UploadFileController {
     public List<FileInfo> uploadFile(@RequestPart("select_file") MultipartFile[] files,
                                      @RequestParam("id") Integer id,
                                      @RequestParam("fid") Integer fid,
+                                     @RequestParam("fName") String fName,
                                      @RequestParam("location") String location) {
         List<FileInfo> result = new ArrayList<>();
         if (files.length > 0) {
@@ -101,7 +102,7 @@ public class UploadFileController {
                         if (map.containsKey(mimeType)) {
                             type = map.get(mimeType);
                         }
-                        FileInfo fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), fid, location, type, new Timestamp(new Date().getTime()), id);
+                        FileInfo fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), fid, location+">"+fid+"."+fName, type, new Timestamp(new Date().getTime()), id);
                         Boolean saveFile = fileOperationService.saveFile(fileInfo);
                         if (!saveFile) {        //往数据库添加失败
                             fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
