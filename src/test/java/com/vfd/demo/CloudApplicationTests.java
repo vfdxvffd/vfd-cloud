@@ -119,4 +119,10 @@ class CloudApplicationTests {
             System.out.println(f);
         }
     }
+
+    @Test
+    public void testRedisKeys() {
+        List<String> key = redisService.getKey("shareFile:*");
+        key.forEach(System.out::println);
+    }
 }
