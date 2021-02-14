@@ -2,6 +2,8 @@ package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.service.FileOperationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,7 @@ public class UploadFileController {
 
     public static String PROJECT_DIR = "/home/vfdxvffd/vfd-cloud/";
     public static Map<String, Integer> map = new HashMap<>();
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     static {
         //文档
@@ -102,7 +105,14 @@ public class UploadFileController {
                         if (map.containsKey(mimeType)) {
                             type = map.get(mimeType);
                         }
-                        FileInfo fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), fid, location+">"+fid+"."+fName, type, new Timestamp(new Date().getTime()), id);
+                        String local = location+">"+fid+"."+fName;
+                        List<Integer> pid = fileOperationService.getPidByLocal(local);
+                        FileInfo fileInfo = null;
+                        if (pid.size() > 0) {
+                            fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), pid.get(0), local, type, new Timestamp(new Date().getTime()), id);
+                        } else {
+                            fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), null, local, type, new Timestamp(new Date().getTime()), id);
+                        }
                         Boolean saveFile = fileOperationService.saveFile(fileInfo);
                         if (!saveFile) {        //往数据库添加失败
                             fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
@@ -136,9 +146,14 @@ public class UploadFileController {
     public Map<String, Object> enterFile(@RequestParam("id") Integer id,
                                          @RequestParam("fid") Integer fid,
                                          @RequestParam("pid") Integer pid) {
+        logger.warn("id:" + id +";fid:" + fid + ";pid:" + pid);
         Map<String, Object> result = new HashMap<>();
         FileInfo fileInfo = fileOperationService.getFileById(fid, id, pid);  //父目录对象
-        List<FileInfo> all = fileOperationService.getFilesByFid(fid, id);
+        List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+"."+fileInfo.getName());
+        List<FileInfo> all = new ArrayList<>();
+        if (pidByLocal.size() > 0) {        //如果size=0说明没有一个文件的location是父目录对象
+            all = fileOperationService.getFilesByFid(pidByLocal.get(0), id);
+        }
         List<FileInfo> dirs = new ArrayList<>();     //文件夹
         List<FileInfo> docs = new ArrayList<>();     //文档
         for (FileInfo f : all) {
@@ -151,7 +166,7 @@ public class UploadFileController {
         result.put("dirs", dirs);
         result.put("docs", docs);
         result.put("currentDir", fileInfo);
-        List<FileInfo> path = ShareFileController.getPath(id, fileInfo);
+        List<FileInfo> path = getPath(id, fileInfo);
         result.put("path", path);
         return result;
     }
@@ -165,14 +180,48 @@ public class UploadFileController {
                           @RequestParam("inputDir") String dirName,
                           @RequestParam("f_name") String fName,
                           HttpSession session) {
-        FileInfo result = new FileInfo(dirName, 0L, fid, location + ">" + fid + "." + fName, 0, new Timestamp(new Date().getTime()), id);
-        Boolean saveFile = fileOperationService.saveFile(result);
-        if (saveFile) {
-            return result;
-        } else {
-            FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
-            fail.setId(0);
-            return fail;
+        String local = location + ">" + fid + "." + fName;
+        List<Integer> pid = fileOperationService.getPidByLocal(local);
+        FileInfo result = null;
+        if (pid.size() > 0) {
+            result = new FileInfo(dirName, 0L, pid.get(0), local, 0, new Timestamp(new Date().getTime()), id);
+            if (fileOperationService.saveFile(result)) {
+                return result;
+            } else {
+                FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
+                fail.setId(0);
+                return fail;
+            }
         }
+        else {
+            result = new FileInfo(dirName, 0L, null, local, 0, new Timestamp(new Date().getTime()), id);
+            if (fileOperationService.saveFile(result)) {
+                return fileOperationService.getFileByLocal(result.getId(), id, local);
+            } else {
+                FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
+                fail.setId(0);
+                return fail;
+            }
+        }
+    }
+
+    public List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
+        String[] dirId = targetDir.getLocation().split(">");
+        ArrayList<FileInfo> fileInfos = new ArrayList<>();
+        StringBuilder local = new StringBuilder();
+        for (String dir : dirId) {
+            String[] split = dir.split("\\.");
+            if (split.length == 2) {
+                List<Integer> pre_id = fileOperationService.getPidByLocal(new String(local));
+                if (pre_id.size() > 0) {
+                    fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id.get(0)));
+                    local.append(">").append(dir);
+                }
+                else {
+                    System.out.println("err acc");
+                }
+            }
+        }
+        return fileInfos;
     }
 }
