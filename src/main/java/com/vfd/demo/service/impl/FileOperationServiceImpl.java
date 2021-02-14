@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -53,6 +52,11 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Override
     public List<FileInfo> getFilesByFid(Integer fid, Integer owner) {
         return fileOperationMapper.getFilesByFid(fid, owner);
+    }
+
+    @Override
+    public FileInfo getFileByLocal(Integer id, Integer owner, String location) {
+        return fileOperationMapper.getFileByLocal(id, owner, location);
     }
 
     @Override
@@ -132,5 +136,10 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Transactional
     public Boolean keepFiles(List<FileInfo> fileInfos, Integer owner) {
         return fileOperationMapper.saveFiles(fileInfos, owner);
+    }
+
+    @Override
+    public List<Integer> getPidByLocal(String location) {
+        return fileOperationMapper.getPidByLocal(location);
     }
 }
