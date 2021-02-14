@@ -47,6 +47,16 @@ public interface FileOperationMapper {
     List<FileInfo> getFilesByFid(@Param("fid") Integer fid, @Param("owner") Integer owner);
 
     /**
+     * 通过id、owner、location获取文件对象
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!谨慎使用!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param id
+     * @param owner
+     * @param location
+     * @return
+     */
+    FileInfo getFileByLocal(@Param("id") Integer id, @Param("owner") Integer owner, @Param("location") String location);
+
+    /**
      * 通过id获得文件对象
      * @param id
      * @return
@@ -66,4 +76,11 @@ public interface FileOperationMapper {
      * @return
      */
     List<FileInfo> getFilesByType(@Param("type") Integer type, @Param("owner") Integer owner);
+
+    /**
+     * 根据location获取pid
+     * @param location
+     * @return
+     */
+    List<Integer> getPidByLocal(String location);
 }
