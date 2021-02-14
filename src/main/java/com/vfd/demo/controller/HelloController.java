@@ -48,12 +48,16 @@ public class HelloController {
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId,0)); //用户根文件夹id
-        modelAndView.addObject("location","");  //位置
-        List<FileInfo> all = fileOperationService.getFilesByFid(-1 * userId, userId);    //所有文件
+        modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*userId, userId,0)); //用户根文件夹id        modelAndView.addObject("location","");  //位置
+        List<Integer> pidByLocal = fileOperationService.getPidByLocal(">" + (-1 * userId) + ".全部文件");
+        List<FileInfo> all = new ArrayList<>();
+        if (pidByLocal.size() > 0) {
+            all = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);    //所有文件
+        }
         AccountController.getDirsAndDocs(modelAndView, all);
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
         modelAndView.addObject("path",fileInfos);
+        modelAndView.addObject("location","");  //位置
         return modelAndView;
     }
 
