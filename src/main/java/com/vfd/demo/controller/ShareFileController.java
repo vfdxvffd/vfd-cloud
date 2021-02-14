@@ -77,7 +77,7 @@ public class ShareFileController {
             modelAndView.addObject("uuid",uuid);
             modelAndView.addObject("sharer",sharer);
         } else {
-            modelAndView = new ModelAndView("blank");
+            modelAndView = new ModelAndView("blank");   //来晚了，文件分享被取消了
         }
         return modelAndView;
     }
@@ -143,7 +143,7 @@ public class ShareFileController {
             modelAndView.addObject("file",file);
             if (userId != null) {
                 modelAndView.addObject("id",userId);
-                if (file.getOwner() == userId)
+                if (file.getOwner() == userId)      //自己打开自己分享的文件
                     modelAndView.addObject("self","true");
             }
             int day = 60*60*24;
@@ -154,7 +154,10 @@ public class ShareFileController {
             if (file.getType() == 0) {  //文件夹
                 modelAndView.addObject("path",new ArrayList<>());
                 modelAndView.addObject("currentDir",file);
-                List<FileInfo> all = fileOperationService.getFilesByFid(file.getId(), file.getOwner());    //所有文件
+                List<FileInfo> all = new ArrayList<>();
+                List<Integer> pidByLocal = fileOperationService.getPidByLocal(file.getLocation() + ">" + file.getId() + "." + file.getName());
+                if (pidByLocal.size() > 0)
+                    all = fileOperationService.getFilesByFid(pidByLocal.get(0), file.getOwner());    //所有文件
                 AccountController.getDirsAndDocs(modelAndView, all);
             } else {
                 List<FileInfo> doc = new ArrayList<>();
@@ -162,7 +165,6 @@ public class ShareFileController {
                 modelAndView.addObject("docs",doc);
             }
             modelAndView.addObject("expire",expire);
-
             modelAndView.addObject("userName",userName);
             modelAndView.addObject("ownerName", userLoginService.getNameById(file.getOwner()));
 
@@ -186,46 +188,68 @@ public class ShareFileController {
         FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
         String[] s = target.split("_");
         FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-        fileInfo.setLocation(targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName());
-        fileInfo.setPid(targetDir.getId());
+        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+        fileInfo.setLocation(location);
+        List<FileInfo> all = new ArrayList<>();
+        List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
+        if (pidByLocal.size() > 0) {
+            fileInfo.setPid(pidByLocal.get(0));
+        } else {
+            fileInfo.setPid(null);
+        }
         fileInfo.setTime(new Timestamp(new Date().getTime()));
         List<FileInfo> allSubFiles = new ArrayList<>();
         allSubFiles.add(fileInfo);
-        getAllSubFileInfo(fileInfo,allSubFiles);
+        getAllSubFileInfo(fileInfo, allSubFiles, local);
         fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
         modelAndView.addObject("currentDir",targetDir); //用户根文件夹id
         modelAndView.addObject("location",targetDir.getLocation());  //位置
-        List<FileInfo> all = fileOperationService.getFilesByFid(targetDir.getId(), userId);    //所有文件
+        if (pidByLocal.size() > 0) {
+            all = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);    //所有文件
+        }
         AccountController.getDirsAndDocs(modelAndView, all);
         modelAndView.addObject("path",getPath(id, targetDir));
         return modelAndView;
     }
 
-    public static List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
+    public List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
         String[] dirId = targetDir.getLocation().split(">");
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        int pre_id = 0;
+        StringBuilder local = new StringBuilder();
         for (String dir : dirId) {
             String[] split = dir.split("\\.");
             if (split.length == 2) {
-                fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id));
-                pre_id = Integer.parseInt(split[0]);
+                List<Integer> pre_id = fileOperationService.getPidByLocal(new String(local));
+                if (pre_id.size() > 0) {
+                    fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id.get(0)));
+                    local.append(">").append(dir);
+                }
+                else {
+                    System.out.println("err acc");
+                }
             }
         }
         return fileInfos;
     }
 
-    public void getAllSubFileInfo(FileInfo fileInfo, List<FileInfo> result) {
-        List<FileInfo> subFiles = fileOperationService.getFilesByFid(fileInfo.getId(), fileInfo.getOwner());
+    public void getAllSubFileInfo(FileInfo fileInfo, List<FileInfo> result, String location) {
+        List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
+        List<FileInfo> subFiles = new ArrayList<>();
+        if (pidByLocal.size() > 0) {
+            subFiles = fileOperationService.getFilesByFid(pidByLocal.get(0), fileInfo.getOwner());
+        }
         for (FileInfo f:subFiles) {
+            String local = f.getLocation() + ">" + f.getId() + "." + f.getName();
             f.setTime(new Timestamp(new Date().getTime()));
             f.setLocation(fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName());
+            f.setPid(pidByLocal.get(0));        //设置pid
             result.add(f);
             if (f.getType() == 0) {
-                getAllSubFileInfo(f,result);
+                getAllSubFileInfo(f,result,local);
             }
         }
     }
