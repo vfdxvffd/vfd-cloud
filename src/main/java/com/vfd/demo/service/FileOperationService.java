@@ -1,6 +1,7 @@
 package com.vfd.demo.service;
 
 import com.vfd.demo.bean.FileInfo;
+import org.apache.ibatis.annotations.Param;
 
 import java.io.File;
 import java.util.List;
@@ -27,6 +28,16 @@ public interface FileOperationService {
      * @return
      */
     List<FileInfo> getFilesByFid(Integer fid, Integer owner);
+
+    /**
+     * 通过id、owner、location获取文件对象
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!谨慎使用!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * @param id
+     * @param owner
+     * @param location
+     * @return
+     */
+    FileInfo getFileByLocal(@Param("id") Integer id, @Param("owner") Integer owner, @Param("location") String location);
 
     /**
      * 通过id获得location和名字
@@ -86,4 +97,11 @@ public interface FileOperationService {
      * @return
      */
     Boolean keepFiles (List<FileInfo> fileInfos, Integer owner);
+
+    /**
+     * 根据location获取pid
+     * @param location
+     * @return
+     */
+    List<Integer> getPidByLocal(String location);
 }
