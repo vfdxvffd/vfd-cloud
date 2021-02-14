@@ -6,28 +6,50 @@
 <!--namespace:名称空间，写接口的全类名，相当于告诉Mybatis这个配置文件是实现哪个接口的-->
 <mapper namespace="com.vfd.demo.mapper.FileOperationMapper">
     <insert id="saveFile" useGeneratedKeys="true" keyProperty="id">
-        insert into file (`name`,len,pid,location,`type`,`time`,owner)
+        <if test="pid!=null">
+            insert into file (`name`,len,pid,location,`type`,`time`,owner)
             values (#{name}, #{len}, #{pid}, #{location}, #{type}, #{time}, #{owner})
+        </if>
+        <if test="pid==null">
+            insert into file (`name`,len,pid,location,`type`,`time`,owner)
+            values (#{name}, #{len}, (select max(pid)+1 from file f1), #{location}, #{type}, #{time}, #{owner})
+        </if>
     </insert>
 
     <!--Boolean saveFiles (@Param("allFiles") List<FileInfo> allFiles, @Param("owner") Integer owner);-->
     <insert id="saveFiles">
         insert into file (id,`name`,len,pid,location,`type`,`time`,owner) values
         <foreach collection="allFiles" item="fileItem" separator=",">
-            (#{fileItem.id},#{fileItem.name},#{fileItem.len},#{fileItem.pid},#{fileItem.location},
-             #{fileItem.type},#{fileItem.time},#{owner})
+            <if test="fileItem.pid!=null">
+                (#{fileItem.id},#{fileItem.name},#{fileItem.len},#{fileItem.pid},#{fileItem.location},
+                #{fileItem.type},#{fileItem.time},#{owner})
+            </if>
+            <if test="fileItem.pid==null">
+                (#{fileItem.id},#{fileItem.name},#{fileItem.len},(select max(pid)+1 from file f1),#{fileItem.location},
+                #{fileItem.type},#{fileItem.time},#{owner})
+            </if>
         </foreach>
     </insert>
 
     <!--Boolean mkDir(FileInfo fileInfo);-->
     <insert id="mkDir">
         insert into file (id,`name`,len,pid,location,`type`,`time`,owner)
-        values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type},#{time},#{owner})
+        <if test="pid != null">
+            values (#{id}, #{name}, #{len}, #{pid}, #{location}, #{type},#{time},#{owner})
+        </if>
+        <if test="pid == null">
+            values (#{id}, #{name}, #{len}, (select max(pid)+1 from file f1), #{location}, #{type},#{time},#{owner})
+        </if>
     </insert>
 
     <!--List<FileInfo> getFilesByFid(Integer fid);-->
     <select id="getFilesByFid" resultType="com.vfd.demo.bean.FileInfo">
         select * from file where pid = #{fid} and owner = #{owner}
+    </select>
+
+    <!--FileInfo getFileByLocal(@Param("id") Integer id, @Param("owner") Integer owner, @Param("location") String location);-->
+    <select id="getFileByLocal" resultType="com.vfd.demo.bean.FileInfo">
+        select * from file where id = #{id} and owner = #{owner} and location = #{location}
     </select>
 
     <!--String getLocationById(Integer id);-->
@@ -43,5 +65,10 @@
     <!--List<FileInfo> getFilesByType(@Param("type") Integer type, @Param("owner") Integer owner);-->
     <select id="getFilesByType" resultType="com.vfd.demo.bean.FileInfo">
         select * from file where `type` = #{type} and owner = #{owner}
+    </select>
+
+    <!--Integer getPidByLocal(String location);-->
+    <select id="getPidByLocal" resultType="java.lang.Integer">
+        select pid from file where location = #{location}
     </select>
 </mapper>
