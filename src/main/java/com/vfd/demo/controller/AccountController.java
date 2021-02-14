@@ -68,7 +68,7 @@ public class AccountController {
         //将验证码存到缓存中
         map.put("key",email+":verificationCode");
         map.put("val",verificationCode);
-        map.put("time","60");
+        map.put("time","300");
         //记录日志
         map.put("log","sendCode:用户注册发送验证码,email:" + email);
         rabbitTemplate.convertAndSend("account.topic","account.sendCode",map);
@@ -178,7 +178,11 @@ public class AccountController {
             modelAndView.addObject("id",login.getId());     //将用户id发送到index页面
             modelAndView.addObject("currentDir",fileOperationService.getFileById(-1*login.getId(), login.getId(),0)); //用户根文件夹id
             modelAndView.addObject("location","");  //位置
-            List<FileInfo> all = fileOperationService.getFilesByFid(-1 * login.getId(), login.getId());    //所有文件
+            List<Integer> pidByLocal = fileOperationService.getPidByLocal(">" + (-1 * login.getId()) + ".全部文件");
+            List<FileInfo> all = new ArrayList<>();
+            if (pidByLocal.size() > 0) {
+                all = fileOperationService.getFilesByFid(pidByLocal.get(0), login.getId());    //所有文件
+            }
             getDirsAndDocs(modelAndView, all);
             ArrayList<FileInfo> fileInfos = new ArrayList<>();
             modelAndView.addObject("path",fileInfos);
@@ -243,7 +247,7 @@ public class AccountController {
         //加入uuid入redis
         map.put("key",email+":uuid");
         map.put("val",uuid);
-        map.put("time","60");
+        map.put("time","300");
         //记录日志
         map.put("log","forget_password:用户修改密码,email:" + email);
         rabbitTemplate.convertAndSend("account.topic","account.sendUUid",map);
