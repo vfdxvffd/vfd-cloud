@@ -1,6 +1,7 @@
 package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.bean.ShareInfo;
 import com.vfd.demo.bean.UserAccInfo;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
@@ -251,6 +252,42 @@ public class ShareFileController {
             if (f.getType() == 0) {
                 getAllSubFileInfo(f,result,local);
             }
+        }
+    }
+
+    @RequestMapping("/getAllLink")
+    public ModelAndView getAllLink(HttpSession session) {
+        Integer loginUserId = (Integer) session.getAttribute("loginUserId");
+        Object loginUserName = session.getAttribute("loginUserName");
+        System.out.println("id:" + loginUserId);
+        List<String> key = redisService.getKey("shareFile:" + loginUserId + ":*");
+        System.out.println("key.size = " + key.size());
+        List<ShareInfo> shareInfos = new ArrayList<>();
+        for (String k:key) {
+            Map<Object, Object> hmget = redisService.hmget(k);
+            String pass = (String) hmget.get("pass");
+            String[] split = k.split(":");
+            long expire = redisService.getExpire(k);
+            shareInfos.add(new ShareInfo(MagicValue.linkPrefix+"/pages/share-file?sharer=" + loginUserId + "&uuid=" + split[2],
+                    pass, split[2], expire));
+        }
+        ModelAndView modelAndView = new ModelAndView("share-link");
+        modelAndView.addObject("share",shareInfos);
+        modelAndView.addObject("userName",loginUserName);
+        return modelAndView;
+    }
+
+
+    @ResponseBody
+    @RequestMapping("/deleteShare")
+    public String deleteShare(@RequestParam("uuid") String uuid, HttpSession session) {
+        Integer loginUserId = (Integer) session.getAttribute("loginUserId");
+        String key = "shareFile:" + loginUserId + ":" + uuid;
+        try {
+            redisService.del(key);
+            return "success";
+        } catch (Exception ignored) {
+            return "fail";
         }
     }
 }
