@@ -109,16 +109,16 @@ class CloudApplicationTests {
         System.out.println(new String(pass));
     }
 
-    @Test
-    public void testGetSubFiles() {
-        FileInfo fileInfo = fileOperationService.getFileById(1,1,-1); //new FileInfo(1,-1,1);
-        List<FileInfo> allSubFileInfo = new ArrayList<>();
-        shareFileController.getAllSubFileInfo(fileInfo,allSubFileInfo);
-        System.out.println(allSubFileInfo.size());
-        for (FileInfo f:allSubFileInfo) {
-            System.out.println(f);
-        }
-    }
+//    @Test
+//    public void testGetSubFiles() {
+//        FileInfo fileInfo = fileOperationService.getFileById(1,1,-1); //new FileInfo(1,-1,1);
+//        List<FileInfo> allSubFileInfo = new ArrayList<>();
+//        shareFileController.getAllSubFileInfo(fileInfo,allSubFileInfo);
+//        System.out.println(allSubFileInfo.size());
+//        for (FileInfo f:allSubFileInfo) {
+//            System.out.println(f);
+//        }
+//    }
 
     @Test
     public void testRedisKeys() {
