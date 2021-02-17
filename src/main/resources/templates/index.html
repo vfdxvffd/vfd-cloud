@@ -43,8 +43,9 @@
         progress::-webkit-progress-value {
             background: #56BE64;
         }
-
-
+        tr.focus{
+            background-color:#eee;
+        }
     </style>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 </head>
@@ -310,7 +311,7 @@
                                     </tr>
                                 </tfoot>
                                 <tbody id="dir_tbody">
-                                    <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
+                                    <tr th:each="dir:${dirs}" th:id="'tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" th:value="${dir}">
                                         <td>
                                             <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
                                                 <p th:text="${dir.getName()}"></p>
@@ -332,7 +333,7 @@
                                 </tbody>
 
                                 <tbody id="doc_tbody">
-                                    <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
+                                    <tr th:each="doc:${docs}" th:id="'tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}">
                                         <td>
                                             <p th:text="${doc.getName()}"></p>
                                         </td>
@@ -374,6 +375,15 @@
         <!-- End of Content Wrapper -->
     </div>
     <!-- End of Page Wrapper -->
+
+    <div id="sub-menu" class="dropdown-menu animated--fade-in show" aria-labelledby="dropdownMenuButton"
+         style="position: absolute; transform: translate3d(3px, 20px, 9px); top: 0px; left: 0px; will-change: transform;"
+         x-placement="bottom-start">
+        <input type="hidden" id="select_tr_id"/>
+        <a class="dropdown-item" href="#">复制到</a>
+        <a class="dropdown-item" href="#">移动到</a>
+        <a class="dropdown-item" href="#">移动到回收站</a>
+    </div>
 
     <!-- Scroll to Top Button-->
     <a class="scroll-to-top rounded" href="#page-top">
@@ -524,7 +534,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="ModalLabel">以下文件上传失败，请避免命名冲突后重试：</h5>
+                    <h5 class="modal-title" id="ModalLabel">以下文件上传失败，主机发生异常或同一文件夹下命名重复：</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -558,6 +568,40 @@
 
 </body>
 <script type="text/javascript">
+
+    // $(document).ready(function () {
+    //     $("#dataTable>tbody>tr").on("click", function () {
+    //         //$(this).parent().find("tr.focus").toggleClass("focus");//取消原先选中行
+    //         $(this).parent().parent().find("tbody>tr.focus").toggleClass("focus");//取消原先选中行
+    //         $(this).toggleClass("focus");//设定当前行为选中行
+    //     });
+    // });
+    $("#sub-menu").hide()
+
+    $(document).on("contextmenu", '#dataTable>tbody>tr', function(e){
+        document.getElementById('select_tr_id').value = this.id;
+        $("#sub-menu").show(100)
+        $('#sub-menu').css({
+            'top': e.pageY + 'px',
+            'left': e.pageX + 'px'
+        });
+        return false;
+    })
+
+    $(document).on('click', function(e) {
+        const evt = event.srcElement ? event.srcElement : event.target;
+        if (evt.id === 'sub-menu') {
+        } else {
+            $('#sub-menu').hide();
+        }
+    });
+
+
+    $(document).on('click', '#dataTable>tbody>tr', function () {
+        //$(this).parent().find("tr.focus").toggleClass("focus");//取消原先选中行
+        $(this).parent().parent().find("tbody>tr.focus").toggleClass("focus");//取消原先选中行
+        $(this).toggleClass("focus");//设定当前行为选中行
+    });
 
     /*当创建文件夹的模态框关闭时触发事件，让现实文件夹名字重复的p标签消失，并重置form表单*/
     $('#mkdirModal').on('hide.bs.modal', function () {
@@ -611,7 +655,7 @@
                 //文件夹
                 //style="display: none"
                 $.each(dirList, function () {
-                    dir_html += "<tr id=\"tr"+this.id+"\">"+
+                    dir_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
                         "<td>"+
                         "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+");\">" +
                         "               <p>"+this.name+"</p>" +
@@ -634,7 +678,7 @@
                 dir_con.innerHTML = dir_html;
                 //文件
                 $.each(docList, function () {
-                    doc_html += "<tr id=\"tr"+this.id+"\">"+
+                    doc_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+getFileSize(this.len)+"</td>"+
                         "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner + "/" + this.pid +"\" class=\"btn btn-primary btn-circle\">" +
@@ -676,7 +720,7 @@
                     document.getElementById('dup_dir').style.color='red';
                     return false;
                 }
-                var add_html = "<tr id=\"tr"+result.id+"\">"+
+                var add_html = "<tr id=\"tr_"+result.id+'_'+result.owner+'_'+result.pid+"\">"+
                     "<td>"+
                     "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+","+result.pid+");\">" +
                     "               <p>"+result.name+"</p>" +
@@ -712,7 +756,7 @@
 
     }
     //监听，当上传文件的选择文件框发生变化则上传此时框中选中的文件
-    $("#select_file").change(function () {
+    $('#select_file').change(function () {
         var formData = new FormData(document.getElementById('upload_file'));
         var tbody = document.getElementById('doc_tbody');
         var modal = document.getElementById('fileUploadFail');
@@ -729,11 +773,11 @@
             success: function (result) {
                var add_html = "";
                 $.each(result,function (){
-                    if (this.type === 0) {
+                    if (this.type === 0 || this.type === 7) {
                         modal_html += "<p style=\"color: black\">[error]    "+this.name+"上传失败</p>";
                         haveErr = true;
                     } else {
-                        add_html += "<tr id=\"tr"+this.id+"\">"+
+                        add_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
                             "<td><p>"+this.name+"</p></td>"+
                             "<td>"+getFileSize(this.len)+"</td>"+
                             "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
@@ -752,7 +796,7 @@
                 });
                 tbody.innerHTML=add_html + tbody.innerHTML;
                 if (haveErr) {
-                    document.getElementById('fileUploadFail').innerHTML = modal_html;
+                    modal.innerHTML = modal_html;
                     document.getElementById('infoModal').click();
                 }
             },
@@ -789,9 +833,6 @@
         $('.progress-body .progress-speed').html("0 M/S, 0/0M");
         $('.progress-body percentage').html("0%");
         $('.progress-body .progress-info').html("请选择文件并点击上传文件按钮");
-        /*$("#btnUpload").attr("disabled", false);
-        $("#uploadFile").attr("disabled", false);*/
-        //$(".progress-body").css("display", "none");
     }
 
     //进度条更新
@@ -918,7 +959,7 @@
             success: function (result) {
                 var add_html = "";
                 $.each(result,function (){
-                    add_html += "<tr id=\"tr"+this.id+"\">"+
+                    add_html += "<tr id=\"tr"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
                         "<td><p>"+this.name+"</p></td>"+
                         "<td>"+getFileSize(this.len)+"</td>"+
                         "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
@@ -964,6 +1005,14 @@
             fileSizeMsg = "文件超过1TB";
         }
         return fileSizeMsg;
+    }
+    
+    function doc_string(obj) {
+        
+    }
+    
+    function dir_string() {
+        
     }
 </script>
 
