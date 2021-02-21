@@ -93,7 +93,7 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
-    public long getExpire(String key) {
+    public Long getExpire(String key) {
         return redisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
 
@@ -109,5 +109,39 @@ public class RedisServiceImpl implements RedisService {
             allKeys.add(key);
         }
         return allKeys;
+    }
+
+    @Override
+    public Set<Object> sGet(String key) {
+        try {
+            return redisTemplate.opsForSet().members(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public Long sSetAndTime(String key, long time, Object... values) {
+        try {
+            Long count = redisTemplate.opsForSet().add(key, values);
+            if (time > 0) {
+                redisTemplate.expire(key, time, TimeUnit.SECONDS);
+            }
+            return count;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0L;
+        }
+    }
+
+    @Override
+    public Long setRemove(String key, Object... values) {
+        try {
+            return redisTemplate.opsForSet().remove(key, values);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0L;
+        }
     }
 }

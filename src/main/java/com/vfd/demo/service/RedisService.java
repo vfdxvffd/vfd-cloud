@@ -2,6 +2,7 @@ package com.vfd.demo.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @PackageName: com.vfd.demo.service
@@ -71,11 +72,35 @@ public interface RedisService {
      * @param key 键 不能为null
      * @return 时间(秒) 返回-1代表为永久有效
      */
-    long getExpire(String key);
+    Long getExpire(String key);
 
     /**
      * 模糊匹配key
      * @param pattern
      */
     List<String> getKey(String pattern);
+
+    /**
+     * 根据key获取Set中的所有值
+     * @param key 键
+     * @return
+     */
+    Set<Object> sGet(String key);
+
+    /**
+     * 将set数据放入缓存
+     * @param key 键
+     * @param time 时间(秒)
+     * @param values 值 可以是多个
+     * @return 成功个数
+     */
+    Long sSetAndTime(String key, long time, Object... values);
+
+    /**
+     * 移除值为value的
+     * @param key 键
+     * @param values 值 可以是多个
+     * @return 移除的个数
+     */
+    Long setRemove(String key, Object... values);
 }

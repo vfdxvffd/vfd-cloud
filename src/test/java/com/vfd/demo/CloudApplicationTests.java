@@ -2,6 +2,7 @@ package com.vfd.demo;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.controller.ShareFileController;
+import com.vfd.demo.controller.TrashController;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
@@ -16,6 +17,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SpringBootTest
@@ -36,6 +38,9 @@ class CloudApplicationTests {
 
     @Autowired
     FileOperationService fileOperationService;
+
+    @Autowired
+    TrashController trashController;
 
     /**
      * 发送简单邮件
@@ -124,5 +129,28 @@ class CloudApplicationTests {
     public void testRedisKeys() {
         List<String> key = redisService.getKey("shareFile:*");
         key.forEach(System.out::println);
+    }
+
+    @Test
+    public void testReName() {
+        FileInfo fileInfo = fileOperationService.getFileById(12,1,2);
+        trashController.reNameDir(fileInfo,"t2(2)",1);
+    }
+
+    @Test
+    public void testString() {
+        String t = ">-2.全部文件>11.share>12.google";
+        String[] split = t.split(">");
+        for (int i = 0; i < split.length; i++) {
+            System.out.println(split[i]);
+        }
+//        List<String> s = new ArrayList<>();
+//        s.add("a");
+//        s.add("b");
+//        s.add("c");
+//        String[] strings = s.toArray(new String[0]);
+//        for (int i = 0; i < strings.length; i++) {
+//            System.out.println(strings[i]);
+//        }
     }
 }

@@ -8,6 +8,7 @@ import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
 import com.vfd.demo.utils.MagicValue;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +42,8 @@ public class ShareFileController {
     UserLoginService userLoginService;
     @Autowired
     FileOperationMapper fileOperationMapper;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @ResponseBody
     @RequestMapping("/getShareLink")
@@ -62,7 +65,13 @@ public class ShareFileController {
         info.put("pass",new String(pass));
         info.put("fileInfo", new FileInfo(id,fid,owner));
         String key = "shareFile:"+owner+":"+uuid;
-        redisService.hmset(key,info,time*24*60*60);
+        if (redisService.hmset(key,info,time*24*60*60)) {
+            rabbitTemplate.convertAndSend("log.direct","info","分享链接生成成功:" + result);
+            result.put("success","true");
+        } else {
+            rabbitTemplate.convertAndSend("log.direct","warn","分享链接生成失败:" + result);
+            result.put("success","false");
+        }
         return result;
     }
 
@@ -85,8 +94,8 @@ public class ShareFileController {
 
     @RequestMapping("/test")
     public ModelAndView test(HttpServletRequest request, HttpSession session) {
-//        request.setAttribute("uuid","123");
-//        request.setAttribute("pass","321");
+        //request.setAttribute("uuid","123");
+        //request.setAttribute("pass","321");
         ModelAndView modelAndView = new ModelAndView("redirect:/preserve-file");
         modelAndView.addObject("uuid","123");
         modelAndView.addObject("pass","pass");
@@ -204,6 +213,8 @@ public class ShareFileController {
         allSubFiles.add(fileInfo);
         getAllSubFileInfo(fileInfo, allSubFiles, local);
         fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
+        rabbitTemplate.convertAndSend("log.direct","info","分享的文件保存成功:" + userId +
+                "fileInfo:" + fileInfo + "targetDir:" + targetDir);
         ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
@@ -259,9 +270,7 @@ public class ShareFileController {
     public ModelAndView getAllLink(HttpSession session) {
         Integer loginUserId = (Integer) session.getAttribute("loginUserId");
         Object loginUserName = session.getAttribute("loginUserName");
-        System.out.println("id:" + loginUserId);
         List<String> key = redisService.getKey("shareFile:" + loginUserId + ":*");
-        System.out.println("key.size = " + key.size());
         List<ShareInfo> shareInfos = new ArrayList<>();
         for (String k:key) {
             Map<Object, Object> hmget = redisService.hmget(k);
@@ -283,11 +292,8 @@ public class ShareFileController {
     public String deleteShare(@RequestParam("uuid") String uuid, HttpSession session) {
         Integer loginUserId = (Integer) session.getAttribute("loginUserId");
         String key = "shareFile:" + loginUserId + ":" + uuid;
-        try {
-            redisService.del(key);
-            return "success";
-        } catch (Exception ignored) {
-            return "fail";
-        }
+        redisService.del(key);
+        rabbitTemplate.convertAndSend("log.direct","info","分享链接删除成功:" + key);
+        return "success";
     }
 }

@@ -5,6 +5,7 @@ import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,9 +29,9 @@ public class HelloController {
     RedisService redisService;
     @Autowired
     FileOperationService fileOperationService;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
-    //记录日志
-    Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * 映射到登陆页
@@ -38,11 +39,13 @@ public class HelloController {
      */
     @RequestMapping("/pages/login")
     public String index() {
+        rabbitTemplate.convertAndSend("visit.direct","visit", "null");
         return "login";
     }
 
     @RequestMapping("/")
     public ModelAndView login(HttpSession session) {
+        rabbitTemplate.convertAndSend("visit.direct","visit", "null");
         Integer userId = (Integer) session.getAttribute("loginUserId");
         String userName = (String) session.getAttribute("loginUserName");
         ModelAndView modelAndView = new ModelAndView("index");
@@ -94,7 +97,6 @@ public class HelloController {
             modelAndView.addObject("email",email);
         } else {
             modelAndView = new ModelAndView("blank");
-            //logger.warn("reset_password:用户重置密码链接已失效，email：" + email);
         }
         return modelAndView;
     }

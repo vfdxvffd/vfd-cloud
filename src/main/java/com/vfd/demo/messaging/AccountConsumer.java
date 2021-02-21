@@ -86,4 +86,18 @@ public class AccountConsumer {
         }
         logger.info("邮件发送成功，邮件内容如下：" + map.entrySet());
     }
+
+    //当有人访问主页的时候给访问次数加一
+    @RabbitListener(bindings = {
+            @QueueBinding(
+                    value = @Queue,     //不指定名字则为临时队列
+                    exchange = @Exchange(name = "visit.direct", type = "direct"),     //交换机名字和类型
+                    key = {"visit"}
+            )
+    })
+    public void visitAdd() {
+        Integer visit = (Integer) redisService.get("visit");
+        visit = visit==null?0:visit;
+        redisService.set("visit",visit+1);
+    }
 }

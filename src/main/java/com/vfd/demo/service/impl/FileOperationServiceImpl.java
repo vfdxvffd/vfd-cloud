@@ -1,9 +1,11 @@
 package com.vfd.demo.service.impl;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.bean.TrashInfo;
 import com.vfd.demo.controller.UploadFileController;
 import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
+import com.vfd.demo.service.RedisService;
 import com.vfd.demo.utils.Sm4Utils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -47,6 +51,10 @@ public class FileOperationServiceImpl implements FileOperationService {
             rabbitTemplate.convertAndSend("log.direct","error",this.getClass()+":文件信息录入数据库发生错误:" + fileInfo);
             return false;
         }
+    }
+
+    public Boolean saveFileFullInfo (FileInfo fileInfo) {
+        return fileOperationMapper.mkDir(fileInfo);
     }
 
     @Override
@@ -141,5 +149,17 @@ public class FileOperationServiceImpl implements FileOperationService {
     @Override
     public List<Integer> getPidByLocal(String location) {
         return fileOperationMapper.getPidByLocal(location);
+    }
+
+    @Transactional
+    @Override
+    public Boolean moveToTrash(FileInfo fileInfo, List<FileInfo> fileInfos) {
+        fileInfos.add(fileInfo);
+        return fileOperationMapper.deleteFilesById(fileInfos);
+    }
+
+    @Override
+    public Boolean updateFileInfo(FileInfo fileInfo) {
+        return fileOperationMapper.updateFileInfo(fileInfo);
     }
 }

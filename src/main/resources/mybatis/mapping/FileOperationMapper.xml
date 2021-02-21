@@ -62,6 +62,14 @@
         delete from file where id = #{id} and owner = #{owner} and pid = #{fid}
     </delete>
 
+    <!--Boolean deleteFilesById(@Param("fileInfos") List<FileInfo> fileInfos);-->
+    <delete id="deleteFilesById">
+        delete from file where (id,pid,owner) in
+        <foreach collection="fileInfos" item="fileItem" separator="," open="(" close=")">
+            (#{fileItem.id},#{fileItem.pid},#{fileItem.owner})
+        </foreach>
+    </delete>
+
     <!--List<FileInfo> getFilesByType(@Param("type") Integer type, @Param("owner") Integer owner);-->
     <select id="getFilesByType" resultType="com.vfd.demo.bean.FileInfo">
         select * from file where `type` = #{type} and owner = #{owner}
@@ -70,5 +78,65 @@
     <!--Integer getPidByLocal(String location);-->
     <select id="getPidByLocal" resultType="java.lang.Integer">
         select pid from file where location = #{location}
+    </select>
+
+    <!--Boolean moveToTrash(TrashInfo trashInfo);-->
+    <insert id="moveToTrash" useGeneratedKeys="true" keyProperty="flag">
+        insert into trash (id,`name`,len,pid,location,`type`,`time`,owner,headman) value
+            (#{id},#{name},#{len},#{pid},#{location},#{type},#{time},#{owner},#{headman})
+    </insert>
+
+    <!--Boolean updateTrashInfo (TrashInfo trashInfo);-->
+    <update id="updateTrashInfo">
+        update trash
+        <set>
+            <if test="id!=null">id=#{id},</if>
+            <if test="name!=null">`name`=#{name},</if>
+            <if test="len!=null">len=#{len},</if>
+            <if test="pid!=null">pid=#{pid},</if>
+            <if test="location!=null">location=#{location},</if>
+            <if test="type!=null">`type`=#{type},</if>
+            <if test="time!=null">`time`=#{time},</if>
+            <if test="owner!=null">owner=#{owner},</if>
+            <if test="headman!=null">headman=#{headman},</if>
+        </set>
+        <where>flag = #{flag}</where>
+    </update>
+
+    <!--Boolean updateFileInfo(FileInfo fileInfo);-->
+    <update id="updateFileInfo">
+        update file
+        <set>
+            <if test="name!=null">`name`=#{name},</if>
+            <if test="len!=null">len=#{len},</if>
+            <if test="location!=null">location=#{location},</if>
+            <if test="type!=null">`type`=#{type},</if>
+            <if test="time!=null">`time`=#{time},</if>
+        </set>
+        <where>id = #{id} and pid = #{pid} and owner = #{owner}</where>
+    </update>
+
+    <!--Boolean moveToTrashMul(@Param("fileInfos") List<FileInfo> fileInfos, @Param("headman") Integer headman);-->
+    <insert id="moveToTrashMul">
+        insert into trash (id,`name`,len,pid,location,`type`,`time`,owner,headman) values
+        <foreach collection="fileInfos" item="fileItem" separator=",">
+            (#{fileItem.id},#{fileItem.name},#{fileItem.len},#{fileItem.pid},#{fileItem.location},
+            #{fileItem.type},#{fileItem.time},#{fileItem.owner},#{headman})
+        </foreach>
+    </insert>
+
+    <!--Boolean deleteFromTrashByFlag(Integer flag);-->
+    <delete id="deleteFromTrashByFlag">
+        delete from trash where flag = #{flag}
+    </delete>
+
+    <!--Boolean deleteFromTrashByHeadman(@Param("headman") Integer headman);-->
+    <delete id="deleteFromTrashByHeadman">
+        delete from trash where headman = #{headman}
+    </delete>
+
+    <!--List<TrashInfo> getTrashInfosByHeadman(@Param("headman") Integer headman);-->
+    <select id="getTrashInfosByHeadman" resultType="com.vfd.demo.bean.TrashInfo">
+        select * from trash where headman = #{headman}
     </select>
 </mapper>

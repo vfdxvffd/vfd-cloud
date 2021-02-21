@@ -44,7 +44,10 @@
             background: #56BE64;
         }
         tr.focus{
-            background-color:#eee;
+            background-color: #e4f6f8;
+        }
+        .table>tbody>tr:hover {
+            background-color: #e4f6f8;
         }
     </style>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
@@ -115,7 +118,7 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="/enterTrash">
                     <i class="fas fa-fw fa-trash-alt"></i>
                     <span>回收站</span></a>
             </li>
@@ -311,19 +314,19 @@
                                     </tr>
                                 </tfoot>
                                 <tbody id="dir_tbody">
-                                    <tr th:each="dir:${dirs}" th:id="'tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" th:value="${dir}">
+                                    <tr th:each="dir:${dirs}" th:id="'tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}">
                                         <td>
-                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
+                                            <a th:id="'enter_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
                                                 <p th:text="${dir.getName()}"></p>
                                             </a>
                                         </td>
                                         <td th:text="'--'"></td>         <!--文件夹长度不显示-->
                                         <td>
-                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                            <a th:id="'delete_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]]);" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="fas fa-trash-alt"></i>
                                             </a>
-                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
+                                            <a th:id="'share_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
                                                th:onclick="Values_share([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]])" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-share"></i>
                                             </a>
@@ -339,14 +342,17 @@
                                         </td>
                                         <td th:text="${doc.convertToSize()}"></td>
                                         <td>
-                                            <a th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id} + '/' + ${doc.getPid()}" class="btn btn-primary btn-circle">
+                                            <a th:id="'download_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                               th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id} + '/' + ${doc.getPid()}" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-download"></i>
                                             </a>
-                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                            <a th:id="'delete_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                               href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]]);" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="fas fa-trash-alt"></i>
                                             </a>
-                                            <a href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
+                                            <a th:id="'share_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                               href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
                                                th:onclick="Values_share([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]])" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-share"></i>
                                             </a>
@@ -380,9 +386,9 @@
          style="position: absolute; transform: translate3d(3px, 20px, 9px); top: 0px; left: 0px; will-change: transform;"
          x-placement="bottom-start">
         <input type="hidden" id="select_tr_id"/>
-        <a class="dropdown-item" href="#">复制到</a>
-        <a class="dropdown-item" href="#">移动到</a>
-        <a class="dropdown-item" href="#">移动到回收站</a>
+        <a id="menu_download" class="dropdown-item" href="javascript:void(0);" onclick="download_click()">下载</a>
+        <a id="menu_delete" class="dropdown-item" href="javascript:void(0);" onclick="delete_click()">删除</a>
+        <a id="menu_share" class="dropdown-item" href="javascript:void(0);" onclick="share_click()">分享</a>
     </div>
 
     <!-- Scroll to Top Button-->
@@ -490,6 +496,9 @@
                     <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value,
                                                                             document.getElementById('deleteFileOwnerId').value,
                                                                             document.getElementById('deleteFileFid').value)">Confirm</a>
+                    <a class="btn btn-primary" href="javascript:void(0);" onclick="move_trash(document.getElementById('deleteFileId').value,
+                                                                            document.getElementById('deleteFileOwnerId').value,
+                                                                            document.getElementById('deleteFileFid').value)">移动到回收站</a>
                 </div>
             </div>
         </div>
@@ -569,17 +578,47 @@
 </body>
 <script type="text/javascript">
 
-    // $(document).ready(function () {
-    //     $("#dataTable>tbody>tr").on("click", function () {
-    //         //$(this).parent().find("tr.focus").toggleClass("focus");//取消原先选中行
-    //         $(this).parent().parent().find("tbody>tr.focus").toggleClass("focus");//取消原先选中行
-    //         $(this).toggleClass("focus");//设定当前行为选中行
-    //     });
-    // });
+    function download_click() {
+        const tr_id = document.getElementById('select_tr_id').value;
+        const component = document.getElementById('download_' + tr_id);
+        component.click();
+    }
+
+    function delete_click() {
+        const tr_id = document.getElementById('select_tr_id').value;
+        const component = document.getElementById('delete_' + tr_id);
+        component.click();
+    }
+
+    function share_click() {
+        const tr_id = document.getElementById('select_tr_id').value;
+        const component = document.getElementById('share_' + tr_id);
+        component.click()
+    }
+
     $("#sub-menu").hide()
 
     $(document).on("contextmenu", '#dataTable>tbody>tr', function(e){
         document.getElementById('select_tr_id').value = this.id;
+        const tr_id = document.getElementById('select_tr_id').value;
+        const component_share = document.getElementById('share_' + tr_id);
+        const component_delete = document.getElementById('delete_' + tr_id);
+        const component_download = document.getElementById('download_' + tr_id);
+        if (component_share == null) {
+            document.getElementById('menu_share').style.display="none";
+        } else {
+            document.getElementById('menu_share').style.display="block";
+        }
+        if (component_delete == null) {
+            document.getElementById('menu_delete').style.display="none";
+        } else {
+            document.getElementById('menu_delete').style.display="block";
+        }
+        if (component_download == null) {
+            document.getElementById('menu_download').style.display="none";
+        } else {
+            document.getElementById('menu_download').style.display="block";
+        }
         $("#sub-menu").show(100)
         $('#sub-menu').css({
             'top': e.pageY + 'px',
@@ -655,44 +694,12 @@
                 //文件夹
                 //style="display: none"
                 $.each(dirList, function () {
-                    dir_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
-                        "<td>"+
-                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+");\">" +
-                        "               <p>"+this.name+"</p>" +
-                        "           </a>" +
-                        "       </td>" +
-                        "       <td>--</td>" +
-                        "       <td>" +
-                        "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "              onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
-                        "               <i class=\"fas fa-trash\"></i>" +
-                        "           </a>" +
-                        "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
-                        "               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
-                        "               <i class=\"fas fa-share\"></i>" +
-                        "           </a>"+
-                        "       </td>" +
-                        "       <td>"+ this.time +"</td>" +
-                        "   </tr>";
+                    dir_html += dir_string(this);
                 });
                 dir_con.innerHTML = dir_html;
                 //文件
                 $.each(docList, function () {
-                    doc_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
-                        "<td><p>"+this.name+"</p></td>"+
-                        "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner + "/" + this.pid +"\" class=\"btn btn-primary btn-circle\">" +
-                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
-                        "                                            </a>"+
-                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
-                        "                                                <i class=\"fas fa-trash\"></i>" +
-                        "                                            </a>"+
-                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
-                        "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
-                        "                                                <i class=\"fas fa-share\"></i>" +
-                        "                                            </a>"+"</td>"+
-                        "<td>"+ this.time +"</td></tr>";
+                    doc_html += doc_string(this);
                 });
                 doc_con.innerHTML = doc_html;
                 /*更新当前页面的信息*/
@@ -720,25 +727,7 @@
                     document.getElementById('dup_dir').style.color='red';
                     return false;
                 }
-                var add_html = "<tr id=\"tr_"+result.id+'_'+result.owner+'_'+result.pid+"\">"+
-                    "<td>"+
-                    "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+result.owner+","+result.id+","+result.pid+");\">" +
-                    "               <p>"+result.name+"</p>" +
-                    "           </a>" +
-                    "       </td>" +
-                    "       <td>--</td>" +
-                    "       <td>" +
-                    "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                    "              onclick=\"Values("+result.id+","+result.owner+","+result.pid+");\" class=\"btn btn-danger btn-circle\">" +
-                    "               <i class=\"fas fa-trash\"></i>" +
-                    "           </a>" +
-                    "           <a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
-                    "               onclick=\"Values_share("+result.id+","+result.owner+","+result.pid+")\" class=\"btn btn-primary btn-circle\">" +
-                    "               <i class=\"fas fa-share\"></i>" +
-                    "           </a>"+
-                    "       </td>" +
-                    "       <td>"+ result.time +"</td>" +
-                    "   </tr>";
+                var add_html = dir_string(result);
                 $('#mkdirModal').modal('hide');
                 tbody_dir.innerHTML = add_html+tbody_dir.innerHTML;
                 return false;
@@ -777,21 +766,7 @@
                         modal_html += "<p style=\"color: black\">[error]    "+this.name+"上传失败</p>";
                         haveErr = true;
                     } else {
-                        add_html += "<tr id=\"tr_"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
-                            "<td><p>"+this.name+"</p></td>"+
-                            "<td>"+getFileSize(this.len)+"</td>"+
-                            "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
-                            "                                                <i class=\"fas fa-download fa-sm \"></i>" +
-                            "                                            </a>"+
-                            "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                            "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
-                            "                                                <i class=\"fas fa-trash\"></i>" +
-                            "                                            </a>"+
-                            "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
-                            "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
-                            "                                                <i class=\"fas fa-share\"></i>" +
-                            "                                            </a>"+"</td>"+
-                            "<td>"+ this.time +"</td></tr>";
+                        add_html += doc_string(this);
                     }
                 });
                 tbody.innerHTML=add_html + tbody.innerHTML;
@@ -886,10 +861,36 @@
     //删除文件时利用ajax做异步，id为要删除的文件的id
     function delete_file(id, owner, fid) {
         $('#deleteModal').modal('hide');
-        var tr = document.getElementById("tr" + id);
+        var tr = document.getElementById('tr_'+id+'_'+owner+'_'+fid);
         $.ajax( {
             type: "GET",
             url: "/delete",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            data: {id: id, owner: owner, fid: fid},
+            success: function (result) {
+                if (result === "success") {
+                    tr.style.display="none";
+                    return false;
+                } else {
+                    alert("删除失败，请稍后重试！");
+                }
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function move_trash(id, owner, fid) {
+        $('#deleteModal').modal('hide');
+        var tr = document.getElementById('tr_'+id+'_'+owner+'_'+fid);
+        $.ajax( {
+            type: "GET",
+            url: "/moveToTrash",
             async: false,        //异步下载
             contentType: "application/json; charset=utf-8",
             dataType: "text",
@@ -959,21 +960,7 @@
             success: function (result) {
                 var add_html = "";
                 $.each(result,function (){
-                    add_html += "<tr id=\"tr"+this.id+'_'+this.owner+'_'+this.pid+"\">"+
-                        "<td><p>"+this.name+"</p></td>"+
-                        "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ "<a href=\"/download/"+this.id +"/"+ this.owner +"/"+this.pid +"\" class=\"btn btn-primary btn-circle\">" +
-                        "                                                <i class=\"fas fa-download fa-sm \"></i>" +
-                        "                                            </a>"+
-                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
-                        "                                               onclick=\"Values("+this.id+","+this.owner+","+this.pid+");\" class=\"btn btn-danger btn-circle\">" +
-                        "                                                <i class=\"fas fa-trash\"></i>" +
-                        "                                            </a>"+
-                        "<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
-                        "                                               onclick=\"Values_share("+this.id+","+this.owner+","+this.pid+")\" class=\"btn btn-primary btn-circle\">" +
-                        "                                                <i class=\"fas fa-share\"></i>" +
-                        "                                            </a>"+"</td>"+
-                        "<td>"+ this.time +"</td></tr>";
+                    add_html += doc_string(this);
                 });
                 document.getElementById('dir_tbody').innerHTML="";
                 tbody.innerHTML=add_html;
@@ -1008,11 +995,43 @@
     }
     
     function doc_string(obj) {
-        
+        return "<tr id=tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+">"+
+            "<td><p>" + obj.name + "</p></td>" +
+            "<td>" + getFileSize(obj.len) + "</td>" +
+            "<td>" + "<a id=\"download_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"/download/" + obj.id + "/" + obj.owner + "/" + obj.pid + "\" class=\"btn btn-primary btn-circle\">" +
+            "                                                <i class=\"fas fa-download fa-sm \"></i>" +
+            "                                            </a>" +
+            "<a id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+            "                                               onclick=\"Values(" + obj.id + "," + obj.owner + "," + obj.pid + ");\" class=\"btn btn-danger btn-circle\">" +
+            "                                                <i class=\"fas fa-trash\"></i>" +
+            "                                            </a>" +
+            "<a id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+            "                                               onclick=\"Values_share(" + obj.id + "," + obj.owner + "," + obj.pid + ")\" class=\"btn btn-primary btn-circle\">" +
+            "                                                <i class=\"fas fa-share\"></i>" +
+            "                                            </a>" + "</td>" +
+            "<td>" + obj.time + "</td></tr>";
     }
     
-    function dir_string() {
-        
+    function dir_string(obj) {
+        return "<tr id=\"tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\">"+
+            "<td>"+
+            "<a id=\"enter_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+");\">" +
+            "               <p>"+obj.name+"</p>" +
+            "           </a>" +
+            "       </td>" +
+            "       <td>--</td>" +
+            "       <td>" +
+            "           <a id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+            "              onclick=\"Values("+obj.id+","+obj.owner+","+obj.pid+");\" class=\"btn btn-danger btn-circle\">" +
+            "               <i class=\"fas fa-trash\"></i>" +
+            "           </a>" +
+            "           <a id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+            "               onclick=\"Values_share("+obj.id+","+obj.owner+","+obj.pid+")\" class=\"btn btn-primary btn-circle\">" +
+            "               <i class=\"fas fa-share\"></i>" +
+            "           </a>"+
+            "       </td>" +
+            "       <td>"+ obj.time +"</td>" +
+            "   </tr>";
     }
 </script>
 

@@ -28,7 +28,6 @@ public class UploadFileController {
 
     public static String PROJECT_DIR = "/home/vfdxvffd/vfd-cloud/";
     public static Map<String, Integer> map = new HashMap<>();
-    Logger logger = LoggerFactory.getLogger(getClass());
 
     static {
         //文档
@@ -97,37 +96,56 @@ public class UploadFileController {
                                      @RequestParam("location") String location) {
         List<FileInfo> result = new ArrayList<>();
         if (files.length > 0) {
-            try {
-                for (MultipartFile file : files) {
-                    if (!file.isEmpty()) {
-                        String mimeType = file.getContentType();
-                        int type = 6;
-                        if (map.containsKey(mimeType)) {
-                            type = map.get(mimeType);
-                        }
-                        String local = location+">"+fid+"."+fName;
-                        List<Integer> pid = fileOperationService.getPidByLocal(local);
-                        FileInfo fileInfo = null;
-                        if (pid.size() > 0) {
-                            fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), pid.get(0), local, type, new Timestamp(new Date().getTime()), id);
-                        } else {
-                            fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), null, local, type, new Timestamp(new Date().getTime()), id);
-                        }
-                        Boolean saveFile = fileOperationService.saveFile(fileInfo);
-                        if (!saveFile) {        //往数据库添加失败
-                            fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
-                            result.add(fileInfo);
-                            continue;
-                        }
-                        result.add(fileInfo);
-                        boolean mkdir = new File(PROJECT_DIR + fileInfo.getId()).mkdirs();
-                        file.transferTo(new File(PROJECT_DIR + fileInfo.getId() + "/" + file.getOriginalFilename()));
-                        fileOperationService.encryptFile(file.getOriginalFilename(), fileInfo.getId());
-                        rabbitTemplate.convertAndSend("log.direct", "info", "upload: 文件上传成功，文件id为" + fileInfo.getId());
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String mimeType = file.getContentType();
+                    int type = 6;
+                    if (map.containsKey(mimeType)) {
+                        type = map.get(mimeType);
                     }
+                    String local = location+">"+fid+"."+fName;
+                    List<Integer> pid = fileOperationService.getPidByLocal(local);
+                    FileInfo fileInfo = null;
+                    if (pid.size() > 0) {
+                        fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), pid.get(0), local, type, new Timestamp(new Date().getTime()), id);
+                    } else {
+                        fileInfo = new FileInfo(null, file.getOriginalFilename(), file.getSize(), null, local, type, new Timestamp(new Date().getTime()), id);
+                    }
+                    Boolean saveFile = fileOperationService.saveFile(fileInfo);
+                    if (!saveFile) {        //往数据库添加失败
+                        rabbitTemplate.convertAndSend("log.direct","warn","文件上传插入数据库失败:" + fileInfo);
+                        fileInfo.setType(0);//如果往数据库添加失败就将这条记录的type改为0,返回前端提示出来
+                        result.add(fileInfo);
+                        continue;
+                    }
+                    File dir = new File(PROJECT_DIR + fileInfo.getId());
+                    boolean mkdir = dir.mkdirs();
+                    try {
+                        file.transferTo(new File(PROJECT_DIR + fileInfo.getId() + "/" + file.getOriginalFilename()));
+                    } catch (Exception e) {
+                        if (mkdir) {
+                            fileOperationService.deleteDir(dir);
+                        }
+                        if (pid.size() > 0) {
+                            rabbitTemplate.convertAndSend("log.direct","warn","文件上传写入磁盘失败:" + fileInfo);
+                            fileOperationService.deleteFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
+                        } else {
+                            FileInfo fileByLocal = fileOperationService.getFileByLocal(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getLocation());
+                            rabbitTemplate.convertAndSend("log.direct","warn","文件上传写入磁盘失败:" + fileByLocal);
+                            fileOperationService.deleteFileById(fileByLocal.getId(), fileByLocal.getOwner(), fileByLocal.getPid());
+                        }
+                        fileInfo.setType(7);//如果往磁盘写失败就将这条记录的type改为7,返回前端提示出来
+                        result.add(fileInfo);
+                        continue;
+                    }
+                    if (pid.size() > 0) {
+                        result.add(fileInfo);
+                    } else {
+                        result.add(fileOperationService.getFileByLocal(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getLocation()));
+                    }
+                    fileOperationService.encryptFile(file.getOriginalFilename(), fileInfo.getId());
+                    rabbitTemplate.convertAndSend("log.direct", "info", "upload: 文件上传成功，文件id为" + fileInfo.getId());
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         return result;
@@ -146,7 +164,6 @@ public class UploadFileController {
     public Map<String, Object> enterFile(@RequestParam("id") Integer id,
                                          @RequestParam("fid") Integer fid,
                                          @RequestParam("pid") Integer pid) {
-        logger.warn("id:" + id +";fid:" + fid + ";pid:" + pid);
         Map<String, Object> result = new HashMap<>();
         FileInfo fileInfo = fileOperationService.getFileById(fid, id, pid);  //父目录对象
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+"."+fileInfo.getName());
@@ -178,16 +195,17 @@ public class UploadFileController {
                           @RequestParam("fid") Integer fid,
                           @RequestParam("location") String location,
                           @RequestParam("inputDir") String dirName,
-                          @RequestParam("f_name") String fName,
-                          HttpSession session) {
+                          @RequestParam("f_name") String fName) {
         String local = location + ">" + fid + "." + fName;
         List<Integer> pid = fileOperationService.getPidByLocal(local);
         FileInfo result = null;
         if (pid.size() > 0) {
             result = new FileInfo(dirName, 0L, pid.get(0), local, 0, new Timestamp(new Date().getTime()), id);
             if (fileOperationService.saveFile(result)) {
+                rabbitTemplate.convertAndSend("log.direct","info","文件夹创建成功:" + result);
                 return result;
             } else {
+                rabbitTemplate.convertAndSend("log.direct","warn","文件夹创建失败:" + result);
                 FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
                 fail.setId(0);
                 return fail;
@@ -196,8 +214,11 @@ public class UploadFileController {
         else {
             result = new FileInfo(dirName, 0L, null, local, 0, new Timestamp(new Date().getTime()), id);
             if (fileOperationService.saveFile(result)) {
-                return fileOperationService.getFileByLocal(result.getId(), id, local);
+                FileInfo fileByLocal = fileOperationService.getFileByLocal(result.getId(), id, local);
+                rabbitTemplate.convertAndSend("log.direct","info","文件夹创建成功:" + fileByLocal);
+                return fileByLocal;
             } else {
+                rabbitTemplate.convertAndSend("log.direct","warn","文件夹创建失败:" + result);
                 FileInfo fail = new FileInfo();     //向数据库中插入文件夹信息失败
                 fail.setId(0);
                 return fail;

@@ -23,6 +23,13 @@ public interface FileOperationService {
     Boolean saveFile (FileInfo fileInfo);
 
     /**
+     * 带有id的保存信息
+     * @param fileInfo
+     * @return
+     */
+    Boolean saveFileFullInfo (FileInfo fileInfo);
+
+    /**
      * 通过父目录id获取其下所有文件
      * @param fid
      * @return
@@ -104,4 +111,19 @@ public interface FileOperationService {
      * @return
      */
     List<Integer> getPidByLocal(String location);
+
+    /**
+     * 将一个文件（夹）移动到回收站
+     * @param fileInfo
+     * @param fileInfos
+     * @return
+     */
+    Boolean moveToTrash(FileInfo fileInfo, List<FileInfo> fileInfos);
+
+    /**
+     * 根据文件的主键动态更新信息
+     * @param fileInfo
+     * @return
+     */
+    Boolean updateFileInfo(FileInfo fileInfo);
 }

@@ -10,12 +10,12 @@ import java.util.Date;
 
 /**
  * @PackageName: com.vfd.demo.bean
- * @ClassName: FileInfo
- * @Description: 文件的基本信息
+ * @ClassName: TrashInfo
+ * @Description:
  * @author: vfdxvffd
- * @date: 2021/1/21 下午7:57
+ * @date: 2021/2/19 上午7:15
  */
-public class FileInfo {
+public class TrashInfo {
 
     private Integer id;         //文件id
     private String name;        //文件名字
@@ -25,23 +25,15 @@ public class FileInfo {
     private Integer type;       //文件类型
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Timestamp time;          //文件上传时间
-    private int owner;          //拥有者的id
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Timestamp delete;          //文件删除时间
+    private Integer owner;          //拥有者的id
+    private Long expire;
 
-    public FileInfo() {
+    public TrashInfo() {
     }
 
-    public FileInfo(TrashInfo trashInfo) {
-        this.id = trashInfo.getId();
-        this.name = trashInfo.getName();
-        this.len = trashInfo.getLen();
-        this.pid = trashInfo.getPid();
-        this.location = trashInfo.getLocation();
-        this.type = trashInfo.getType();
-        this.time = trashInfo.getTime();
-        this.owner = trashInfo.getOwner();
-    }
-
-    public FileInfo(FileInfo fileInfo) {
+    public TrashInfo(FileInfo fileInfo, Timestamp delete, Long expire) {
         this.id = fileInfo.getId();
         this.name = fileInfo.getName();
         this.len = fileInfo.getLen();
@@ -49,34 +41,12 @@ public class FileInfo {
         this.location = fileInfo.getLocation();
         this.type = fileInfo.getType();
         this.time = fileInfo.getTime();
+        this.delete = delete;
         this.owner = fileInfo.getOwner();
-
+        this.expire = expire;
     }
 
-    public FileInfo(Integer id, Integer pid, int owner) {
-        this.id = id;
-        this.pid = pid;
-        this.owner = owner;
-    }
-
-    public FileInfo(Integer id, String name, Integer owner, Integer pid) {
-        this.id = id;
-        this.name = name;
-        this.owner = owner;
-        this.pid = pid;
-    }
-
-    public FileInfo(String name, Long len, Integer pid, String location, Integer type, Timestamp time, int owner) {
-        this.name = name;
-        this.len = len;
-        this.pid = pid;
-        this.location = location;
-        this.type = type;
-        this.time = time;
-        this.owner = owner;
-    }
-
-    public FileInfo(Integer id, String name, Long len, Integer pid, String location, Integer type, Timestamp time, int owner) {
+    public TrashInfo(Integer id, String name, Long len, Integer pid, String location, Integer type, Timestamp time, Timestamp delete, Integer owner, Long expire) {
         this.id = id;
         this.name = name;
         this.len = len;
@@ -84,42 +54,14 @@ public class FileInfo {
         this.location = location;
         this.type = type;
         this.time = time;
+        this.delete = delete;
         this.owner = owner;
-    }
-
-    @Override
-    public String toString() {
-        return "FileInfo{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", len=" + len +
-                ", pid=" + pid +
-                ", location='" + location + '\'' +
-                ", type=" + type +
-                ", time=" + time +
-                ", owner=" + owner +
-                '}';
-    }
-
-    public int getOwner() {
-        return owner;
-    }
-
-    public void setOwner(int owner) {
-        this.owner = owner;
-    }
-
-    public Timestamp getTime() {
-        return time;
+        this.expire = expire;
     }
 
     public String gainTime() {
         SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return simpleDateFormat.format(new Date(this.time.getTime()));
-    }
-
-    public void setTime(Timestamp time) {
-        this.time = time;
+        return simpleDateFormat.format(new Date(this.delete.getTime()));
     }
 
     public Integer getId() {
@@ -170,7 +112,41 @@ public class FileInfo {
         this.type = type;
     }
 
+    public Timestamp getTime() {
+        return time;
+    }
+
+    public void setTime(Timestamp time) {
+        this.time = time;
+    }
+
+    public Timestamp getDelete() {
+        return delete;
+    }
+
+    public void setDelete(Timestamp delete) {
+        this.delete = delete;
+    }
+
+    public Integer getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Integer owner) {
+        this.owner = owner;
+    }
+
+    public Long getExpire() {
+        return expire;
+    }
+
+    public void setExpire(Long expire) {
+        this.expire = expire;
+    }
+
     public String convertToSize() {
+        if (this.type == 0)
+            return "--";
         BigDecimal fileSize = new BigDecimal(this.len);
         BigDecimal param = new BigDecimal(1024);
         int count = 0;

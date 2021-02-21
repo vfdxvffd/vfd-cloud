@@ -1,6 +1,7 @@
 package com.vfd.demo.mapper;
 
 import com.vfd.demo.bean.FileInfo;
+import com.vfd.demo.bean.TrashInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -70,6 +71,12 @@ public interface FileOperationMapper {
     Boolean deleteFileById(@Param("id") Integer id, @Param("owner") Integer owner, @Param("fid") Integer fid);
 
     /**
+     * 通过id删除某个文件
+     * @param id
+     */
+    Boolean deleteFilesById(@Param("fileInfos") List<FileInfo> fileInfos);
+
+    /**
      * 通过文件类型查找某个用户的所有文件
      * @param type
      * @param owner
@@ -83,4 +90,52 @@ public interface FileOperationMapper {
      * @return
      */
     List<Integer> getPidByLocal(String location);
+
+    /**
+     * 向trash表加入信息
+     * @return
+     */
+    Boolean moveToTrash(TrashInfo trashInfo);
+
+    /**
+     * 更新某个字段值
+     * @param trashInfo
+     * @return
+     */
+    Boolean updateTrashInfo (TrashInfo trashInfo);
+
+    /**
+     * 批量插入多条数据
+     * @param trashInfos
+     * @return
+     */
+    Boolean moveToTrashMul(@Param("fileInfos") List<FileInfo> fileInfos, @Param("headman") Integer headman);
+
+    /**
+     * 从回收站删除某条数据
+     * @param flag
+     * @return
+     */
+    Boolean deleteFromTrashByFlag(@Param("flag") Integer flag);
+
+    /**
+     * 从回收站删除某条数据
+     * @param headman
+     * @return
+     */
+    Boolean deleteFromTrashByHeadman(@Param("headman") Integer headman);
+
+    /**
+     * 根据headman查找信息
+     * @param headman
+     * @return
+     */
+    List<TrashInfo> getTrashInfosByHeadman(@Param("headman") Integer headman);
+
+    /**
+     * 根据文件的主键动态更新信息
+     * @param fileInfo
+     * @return
+     */
+    Boolean updateFileInfo(FileInfo fileInfo);
 }
