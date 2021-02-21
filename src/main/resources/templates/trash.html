@@ -114,10 +114,10 @@
                 <!-- Page Heading -->
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <!--                    <h3 class="h3 mb-0 text-gray-800"><p th:text="'文件分享者： '+ ${ownerName}"></p></h3>-->
-                    <a href="javascript:void(0);" class="btn btn-success btn-icon-split btn-sm" data-toggle="modal"
+                    <a href="javascript:void(0);" class="btn btn-danger btn-icon-split btn-sm" data-toggle="modal"
                     data-target="#deleteAllModal">
                                         <span class="icon text-white-50">
-                                            <i class="fas fa-save"></i>
+                                            <i class="fas fa-trash-alt"></i>
                                         </span>
                         <span class="text">清空回收站</span>
                     </a>
@@ -153,7 +153,7 @@
                                 <td th:text="${iter.gainTime()}"></td>
                                 <td>
                                     <a th:id="'resume_tr_'+${iterStat.index}" class="btn btn-primary btn-circle"
-                                    th:onclick="check([[${iter.getId()}]],[[${iter.getOwner()}]],[[${iter.getPid()}]]);">
+                                    th:onclick="check([[${iter.getId()}]],[[${iter.getOwner()}]],[[${iter.getPid()}]],[[${iterStat.index}]]);">
                                         <i class="fas fa-redo-alt"></i>
                                     </a>
                                     <a th:id="'delete_tr_'+${iterStat.index}" class="btn btn-danger btn-circle"
@@ -217,20 +217,20 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm to Delete?</h5>
+                <h5 class="modal-title" id="deleteModalLabel">确认删除?</h5>
                 <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
+            <div class="modal-body">选择“确认”后，此文件将被永久删除</div>
             <input type="hidden" id="deleteId" name="deleteId">
             <input type="hidden" id="deleteFid" name="deleteFid">
             <input type="hidden" id="deleteIndex" name="deleteIndex">
             <div class="modal-footer">
-                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_trash(document.getElementById('deleteId').value,
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                <a class="btn btn-danger" href="javascript:void(0);" onclick="delete_trash(document.getElementById('deleteId').value,
                                                                         document.getElementById('deleteFid').value,
-                                                                        document.getElementById('deleteIndex').value)">Confirm</a>
+                                                                        document.getElementById('deleteIndex').value)">确认</a>
             </div>
         </div>
     </div>
@@ -241,15 +241,15 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteAllModalLabel">Confirm to Delete?</h5>
+                <h5 class="modal-title" id="deleteAllModalLabel">确认清空?</h5>
                 <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
+            <div class="modal-body">选择“确认”后回收站将被清空，所有文件将不能恢复</div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_all()">Confirm</a>
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                <a class="btn btn-danger" href="javascript:void(0);" onclick="delete_all()">确认</a>
             </div>
         </div>
     </div>
@@ -265,26 +265,32 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">还原的位置已经包含了同名的文件，请选择您的操作：</div>
-            <div>
-                已有文件：
-                <div id="exist_name"></div>
-                <div id="exist_date"></div><br>
-                正在还原文件：
-                <div id="resume_name"></div>
-                <div id="resume_date"></div>
+            <div class="modal-body">还原的位置已经包含了同名的文件，请选择您的操作：
+                <div>
+                    已有文件：
+                    <div id="exist_name"></div>
+                    <div id="exist_date"></div><br>
+                    正在还原文件：
+                    <div id="resume_name"></div>
+                    <div id="resume_date"></div>
+                </div>
+                <input type="hidden" id="re_id">
+                <input type="hidden" id="re_owner">
+                <input type="hidden" id="re_fid">
+                <input type="hidden" id="re_index">
+                替换文件：将覆盖已有文件
+                保留两个文件：将重命名已有文件
             </div>
-            <input type="hidden" id="re_id">
-            <input type="hidden" id="re_owner">
-            <input type="hidden" id="re_fid">
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                <a class="btn btn-danger" href="javascript:void(0);" onclick="resume(document.getElementById('re_id').value,
+                                                        document.getElementById('re_owner').value,
+                                                        document.getElementById('re_fid').value,
+                                                        document.getElementById('re_index').value ,true);">替换文件</a>
                 <a class="btn btn-primary" href="javascript:void(0);" onclick="resume(document.getElementById('re_id').value,
                                                         document.getElementById('re_owner').value,
-                                                        document.getElementById('re_fid').value,true);">替换文件</a>
-                <a class="btn btn-primary" href="javascript:void(0);" onclick="resume(document.getElementById('re_id').value,
-                                                        document.getElementById('re_owner').value,
-                                                        document.getElementById('re_fid').value,false);">保留两个文件</a>
+                                                        document.getElementById('re_fid').value,
+                                                        document.getElementById('re_index').value, false);">保留两个文件</a>
             </div>
         </div>
     </div>
@@ -340,7 +346,7 @@
         });
     }
 
-    function check(id, owner, fid) {
+    function check(id, owner, fid, index) {
         $.ajax({
             type: "get",
             url: "/checkDuplicate",
@@ -360,10 +366,11 @@
                     document.getElementById('re_id').value = id;
                     document.getElementById('re_owner').value = owner;
                     document.getElementById('re_fid').value = fid;
+                    document.getElementById('re_index').value = index;
                     $('#duplicateModal').modal('show');
                     return false;
                 }
-                resume(id, owner, fid, false);
+                resume(id, owner, fid, index, false);
                 return false;
             },
             error: function (msg) {
@@ -373,7 +380,8 @@
         });
     }
 
-    function resume(id, owner, fid, op) {
+    function resume(id, owner, fid, index, op) {
+        $('#duplicateModal').modal('hide');
         $.ajax({
             type: "GET",
             url: "/resumeFile",
@@ -382,7 +390,9 @@
             dataType: "text",
             data: {id: id, owner: owner, fid: fid, op: op},
             success: function (result) {
-                $('#duplicateModal').modal('hidden');
+                if (result === "success") {
+                    document.getElementById('tr'+index).style.display="none";
+                }
                 alert(result);
                 return false;
             },

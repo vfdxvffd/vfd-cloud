@@ -59,6 +59,22 @@ public class TrashInfo {
         this.expire = expire;
     }
 
+    @Override
+    public String toString() {
+        return "TrashInfo{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", len=" + len +
+                ", pid=" + pid +
+                ", location='" + location + '\'' +
+                ", type=" + type +
+                ", time=" + time +
+                ", delete=" + delete +
+                ", owner=" + owner +
+                ", expire=" + expire +
+                '}';
+    }
+
     public String gainTime() {
         SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(new Date(this.delete.getTime()));

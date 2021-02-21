@@ -13,15 +13,17 @@ public class ShareInfo {
     private String pass;
     private String uuid;
     private Long expire;
+    private String name;
 
     public ShareInfo() {
     }
 
-    public ShareInfo(String link, String pass, String uuid, Long expire) {
+    public ShareInfo(String link, String pass, String uuid, Long expire, String name) {
         this.link = link;
         this.pass = pass;
         this.uuid = uuid;
         this.expire = expire;
+        this.name = name;
     }
 
     @Override
@@ -32,6 +34,14 @@ public class ShareInfo {
                 ", uuid='" + uuid + '\'' +
                 ", expire=" + expire +
                 '}';
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getUuid() {

@@ -118,14 +118,26 @@ public class TrashController {
                         if (fileInfo.getName().equals(tmp[1])) {
                             //发生重名冲突
                             result.put("duplicate",fileInfo);
-                            System.out.println("===================================这里重复了");
                             return result;
                         }
                     }
-
                 }
             }
             local += ">" + tmp[0] + "." + tmp[1];
+        }
+        FileInfo headmanFile = new FileInfo(headman);
+        List<Integer> pidByLocal = fileOperationService.getPidByLocal(headmanFile.getLocation());
+        if (pidByLocal.size() <= 0)
+            return result;
+        else {
+            headmanFile.setPid(pidByLocal.get(0));
+            List<FileInfo> byFid = fileOperationService.getFilesByFid(pidByLocal.get(0), loginUserId);
+            for (FileInfo f : byFid) {
+                if (f.getName().equals(headmanFile.getName())) {
+                    result.put("duplicate",f);
+                    return result;
+                }
+            }
         }
         return result;
     }
@@ -166,7 +178,7 @@ public class TrashController {
                         if (op) {       //覆盖
                             List<FileInfo> result = new ArrayList<>();
                             getAllSubFiles(duplicate,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
-                            System.out.println("duplicate:" + duplicate);
+                            System.out.println("覆盖,result = " + result);
                             result.forEach(System.out::println);
                             fileOperationService.moveToTrash(duplicate,result);
                             FileInfo fileInfo = new FileInfo(Integer.parseInt(tmp[0]),tmp[1],0L,null,local,0,new Timestamp(new Date().getTime()),loginUserId);
@@ -200,7 +212,6 @@ public class TrashController {
                                 count++;
                             }
                         }
-                        System.out.println("==============================重命名");
                     } else {
                         //创建
                         FileInfo fileInfo = new FileInfo(Integer.parseInt(tmp[0]),tmp[1],0L,null,local,0,new Timestamp(new Date().getTime()),loginUserId);
@@ -273,6 +284,7 @@ public class TrashController {
             file.setTime(new Timestamp(new Date().getTime()));
             fileOperationService.saveFileFullInfo(file);
         }
+        redisService.del(key);
         return "success";
     }
 
@@ -318,8 +330,10 @@ public class TrashController {
         for (FileInfo info : filesByFid) {
             List<Integer> pidByLocal = fileOperationService.getPidByLocal(info.getLocation()+">"+info.getId()+"."+info.getName());
             FileInfo file = new FileInfo(info.getId(),info.getPid(),info.getOwner());
-            file.setLocation(fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName());
+            String location = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+            file.setLocation(location);
             fileOperationService.updateFileInfo(file);
+            info.setLocation(location);
             if (pidByLocal.size() > 0) {
                 updateSubFilesLocation(info, pidByLocal.get(0), owner);
             }

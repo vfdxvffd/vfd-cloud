@@ -50,7 +50,8 @@ public class ShareFileController {
     public Map<String, String> getShareLink (@RequestParam("id") Integer id,
                                              @RequestParam("owner") Integer owner,
                                              @RequestParam("fid") Integer fid,
-                                             @RequestParam("time") Integer time) {
+                                             @RequestParam("time") Integer time,
+                                             @RequestParam("name") String name) {
         Map<String, String> result = new HashMap<>();
         StringBuilder pass = new StringBuilder();
         for (int i = 0; i < 4; i++) {
@@ -63,7 +64,8 @@ public class ShareFileController {
         //将待分享的文件信息和生成的提取码以及验证UUID存入缓存中，时间设定为time天
         Map<String,Object> info = new HashMap<>();
         info.put("pass",new String(pass));
-        info.put("fileInfo", new FileInfo(id,fid,owner));
+        info.put("fileInfo", new FileInfo(id,name,owner,fid));
+        //info.put("fileInfo", fileOperationService.getFileById(id, owner, fid));
         String key = "shareFile:"+owner+":"+uuid;
         if (redisService.hmset(key,info,time*24*60*60)) {
             rabbitTemplate.convertAndSend("log.direct","info","分享链接生成成功:" + result);
@@ -275,10 +277,11 @@ public class ShareFileController {
         for (String k:key) {
             Map<Object, Object> hmget = redisService.hmget(k);
             String pass = (String) hmget.get("pass");
+            FileInfo f = (FileInfo) hmget.get("fileInfo");
             String[] split = k.split(":");
             long expire = redisService.getExpire(k);
             shareInfos.add(new ShareInfo(MagicValue.linkPrefix+"/pages/share-file?sharer=" + loginUserId + "&uuid=" + split[2],
-                    pass, split[2], expire));
+                    pass, split[2], expire, f.getName()));
         }
         ModelAndView modelAndView = new ModelAndView("share-link");
         modelAndView.addObject("share",shareInfos);
@@ -294,6 +297,16 @@ public class ShareFileController {
         String key = "shareFile:" + loginUserId + ":" + uuid;
         redisService.del(key);
         rabbitTemplate.convertAndSend("log.direct","info","分享链接删除成功:" + key);
+        return "success";
+    }
+
+    @ResponseBody
+    @RequestMapping("/deleteAllShare")
+    public String deleteAllShare(HttpSession session) {
+        Integer loginUserId = (Integer) session.getAttribute("loginUserId");
+        String key = "shareFile:" + loginUserId + ":*";
+        redisService.del(redisService.getKey(key).toArray(new String[0]));
+        rabbitTemplate.convertAndSend("log.direct","info","用户所有分享链接删除成功:" + loginUserId);
         return "success";
     }
 }
