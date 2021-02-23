@@ -162,4 +162,9 @@ public class FileOperationServiceImpl implements FileOperationService {
     public Boolean updateFileInfo(FileInfo fileInfo) {
         return fileOperationMapper.updateFileInfo(fileInfo);
     }
+
+    @Override
+    public Integer getCountById(Integer id) {
+        return fileOperationMapper.getCountById(id).size();
+    }
 }

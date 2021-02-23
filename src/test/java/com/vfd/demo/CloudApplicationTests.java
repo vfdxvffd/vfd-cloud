@@ -6,6 +6,7 @@ import com.vfd.demo.controller.TrashController;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
+import com.vfd.demo.utils.MagicValue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -152,5 +153,26 @@ class CloudApplicationTests {
 //        for (int i = 0; i < strings.length; i++) {
 //            System.out.println(strings[i]);
 //        }
+    }
+
+    @Test
+    public void testRename() {
+        File file = new File(MagicValue.fileAddress + "/" + 5);
+        boolean b = file.renameTo(new File(MagicValue.fileAddress + "/" + 6));
+        System.out.println(b);
+        file = new File(MagicValue.fileAddress + "/" + 6 + "/1.jpeg");
+        boolean b1 = file.renameTo(new File(MagicValue.fileAddress + "/" + 6 + "/" + "1(1).jpeg"));
+        System.out.println(b1);
+    }
+
+    @Test
+    public void testFileRename() {
+        String name = "hello";
+        System.out.println(name.contains("."));
+    }
+
+    @Test
+    public void testCount() {
+        System.out.println(fileOperationService.getCountById(11));
     }
 }

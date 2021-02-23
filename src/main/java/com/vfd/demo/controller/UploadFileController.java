@@ -33,9 +33,6 @@ public class UploadFileController {
         //文档
         map.put("text/markdown", 1);
         map.put("text/plain", 1);
-        map.put("text/html", 1);
-        map.put("text/javascript", 1);
-        map.put("text/css", 1);
         map.put("application/pdf", 1);
         map.put("application/vnd.ms-works", 1);
         map.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", 1);
@@ -45,6 +42,7 @@ public class UploadFileController {
         map.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 1);
         map.put("application/vnd.ms-excel", 1);
         map.put("application/vnd.ms-htmlhelp", 1);
+        map.put("", 1);
         //图片
         map.put("image/png", 2);
         map.put("image/x-icon", 2);
@@ -68,8 +66,17 @@ public class UploadFileController {
         map.put("audio/mpeg", 4);
         map.put("audio/mp4", 4);
         map.put("audio/ogg", 4);
-        //种子
-        map.put("application/x-bittorrent", 5);
+        //代码
+        map.put("text/x-c", 5);
+        map.put("application/java", 5);
+        map.put("text/css", 5);
+        map.put("text/html", 5);
+        map.put("text/javascript", 5);
+        map.put("application/java-archive", 5);
+        map.put("application/xml", 5);
+        map.put("application/x-sql", 5);
+        map.put("application/json", 5);
+        map.put("text/x-java-source", 5);
     }
 
 

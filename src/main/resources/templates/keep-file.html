@@ -85,6 +85,10 @@
         .subBtn:hover{
             background-color: #00C8C8;
         }
+        a{text-decoration:none}
+        a:hover{
+            text-decoration:none;
+        }
 
     </style>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
@@ -143,15 +147,15 @@
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                  aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
                                 </a>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Settings
                                 </a>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Activity Log
                                 </a>
@@ -185,7 +189,7 @@
                 <!--导航栏-->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 float-left" th:if="${currentDir}">
-                        <h6 class="m-0 font-weight-bold text-primary">
+                        <h5 class="m-0 font-weight-bold text-primary">
                             <div class="float-left" id="guide">
                                 <div class="float-left" th:each="pa:${path}">
                                     <a th:text="${pa.getName()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${pa.getOwner()}]],[[${pa.getId()}]],[[${pa.getPid()}]]);">
@@ -195,7 +199,7 @@
                                     <p th:text="'&nbsp;' + ${currentDir.getName()}"></p>
                                 </div>
                             </div>
-                        </h6>
+                        </h5>
                     </div>
 
                     <div class="card-body card mb-4 py-3 border-left-primary">
@@ -203,6 +207,7 @@
                             <table class="table" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
                                 <tr>
+                                    <th></th>
                                     <th>文档名</th>
                                     <th>长度</th>
                                     <th>有效期</th>
@@ -210,32 +215,58 @@
                                 </thead>
                                 <tfoot>
                                 <tr>
+                                    <th></th>
                                     <th>文档名</th>
                                     <th>长度</th>
                                     <th>有效期</th>
                                 </tr>
                                 </tfoot>
                                 <tbody id="dir_tbody">
-                                <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
-                                    <td>
-                                        <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getOwner()}]],[[${dir.getId()}]],
-                                        [[${dir.getPid()}]],[[${file.getId()}]],[[${file.getOwner()}]],[[${file.getPid()}]],[[${expire}]]);">
-                                            <p th:text="${dir.getName()}"></p>
-                                        </a>
-                                    </td>
-                                    <td th:text="'--'"></td>         <!--文件夹长度不显示-->
-                                    <td th:text="${expire}+'天'"></td>
-                                </tr>
+                                    <tr th:each="dir:${dirs}" th:id="'tr' + ${dir.getId()}">
+                                        <td>
+                                            <span class="icon">
+                                                <i style="color: lightskyblue" class="fas fa-folder fa-2x"></i>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0)" th:onclick="enter_into_dir([[${dir.getOwner()}]],[[${dir.getId()}]],
+                                            [[${dir.getPid()}]],[[${file.getId()}]],[[${file.getOwner()}]],[[${file.getPid()}]],[[${expire}]]);">
+                                                <span class="h5 m-0 text-sm-center" th:text="${dir.getName()}"></span>
+                                            </a>
+                                        </td>
+                                        <td><span class="h5 m-0 text-dark" th:text="'--'"></span></td>         <!--文件夹长度不显示-->
+                                        <td><span class="h5 m-0 text-dark" th:text="${expire}+'天'"></span></td>
+                                    </tr>
                                 </tbody>
 
                                 <tbody id="doc_tbody">
-                                <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
-                                    <td>
-                                        <p th:text="${doc.getName()}"></p>
-                                    </td>
-                                    <td th:text="${doc.convertToSize()}"></td>
-                                    <td th:text="${expire} + '天'"></td>
-                                </tr>
+                                    <tr th:each="doc:${docs}" th:id="'tr' + ${doc.getId()}">
+                                        <td>
+                                            <span th:if="${doc.getType()==1}" class="icon">
+                                                <i style="color: cornflowerblue" class="fas fa-file-alt fa-2x"></i>
+                                            </span>
+                                            <span th:if="${doc.getType()==2}" class="icon">
+                                                <i style="color: #09cb09" class="fas fa-image fa-2x"></i>
+                                            </span>
+                                            <span th:if="${doc.getType()==3}" class="icon">
+                                                <i style="color: blueviolet" class="fas fa-video fa-2x"></i>
+                                            </span>
+                                            <span th:if="${doc.getType()==4}" class="icon">
+                                                <i style="color: deeppink" class="fas fa-music fa-2x"></i>
+                                            </span>
+                                            <span th:if="${doc.getType()==5}" class="icon">
+                                                <i style="color: #069706" class="fas fa-file-code fa-2x"></i>
+                                            </span>
+                                            <span th:if="${doc.getType()==6}" class="icon">
+                                                <i style="color: gray" class="fas fa-file fa-2x"></i>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="h5 m-0 text-dark" th:text="${doc.getName()}"></span>
+                                        </td>
+                                        <td><span class="h5 m-0 text-dark" th:text="${doc.convertToSize()}"></span></td>
+                                        <td><span class="h5 m-0 text-dark" th:text="${expire} + '天'"></span></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -267,7 +298,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="ModalLabel">In Plan</h5>
+                    <h5 class="modal-title" id="ModalLabel">保存文件</h5>
                     <button class="close" type="button" th:onclick="close_modal([[${id}]]);" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -287,7 +318,11 @@
                                        th:onclick="close_sub_dir([[-1*${id}]],[[${id}]],0)">
                                         <div class="subBtn"></div></a>
                                     <input type="radio" name="targetDir" id="targetDir" th:value="-1*${id}+'_'+${id}+'_0'" />
-                                    <label class="custom-radio" for="targetDir">全部文件</label>
+                                    <label class="custom-radio" for="targetDir">
+                                        <span th:id="'icon_'+${id}*-1+'_'+${id}+'_0'" class="icon">
+                                            <i style="color: lightskyblue" class="fas fa-folder-open"></i>
+                                        </span>全部文件
+                                    </label>
                                 </li>
                             </ul>
                         </div>
@@ -295,8 +330,27 @@
                 </div>
                 <div class="modal-footer">
                     <button id="fileTreeButton" class="btn btn-secondary" th:onclick="close_modal([[${id}]]);" type="button" data-dismiss="modal">取消</button>
-                    <a th:onclick="save_file([[${id}]],[[${file.getOwner()}]]);"
+                    <a th:onclick="save_file_check([[${id}]],[[${file.getOwner()}]]);"
                        class="btn btn-primary" href="javascript:void(0)">确认</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- warning Modal-->
+    <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="warningModalLabel">错误</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">不能保存自己分享的文件哦，文件的复制和移动功能正在开发中...</div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
                 </div>
             </div>
         </div>
@@ -304,6 +358,25 @@
 
     <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">退出登陆？</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">选择“注销”即可退出当前帐号</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                    <a class="btn btn-primary" href="/logout">注销</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- info Modal-->
+    <div class="modal fade" id="tipModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -324,35 +397,13 @@
         </div>
     </div>
 
-    <!-- warning Modal-->
-    <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="warningModalLabel">In Plan</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <!--Select "Logout" below if you are ready to end your current session.-->
-                <div class="modal-body">不能保存自己分享的文件哦，文件的复制和移动功能正在开发中...</div>
-                <div class="modal-footer">
-                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
-                    <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
-                    <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- login Modal-->
     <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <h5 class="modal-title" id="loginModalLabel">登录</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -365,11 +416,11 @@
                         <div class="form-group">
                             <input type="email" class="form-control form-control-user"
                                    id="inputEmail" name="inputEmail" aria-describedby="emailHelp"
-                                   placeholder="Enter Email Address...">
+                                   placeholder="输入邮箱地址...">
                         </div>
                         <div class="form-group">
                             <input type="password" class="form-control form-control-user"
-                                   id="inputPassword" name="inputPassword" placeholder="Password">
+                                   id="inputPassword" name="inputPassword" placeholder="密码">
                         </div>
                         <div class="form-group">
                             <div class="custom-control custom-checkbox small">
@@ -382,12 +433,42 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                    <a class="btn btn-primary" href="javascript:void(0);" th:onclick="share_login([[${uuid}]],[[${pass}]],[[${sharer}]])">Login</a>
+                    <a class="btn btn-primary" href="javascript:void(0);" th:onclick="share_login([[${uuid}]],[[${pass}]],[[${sharer}]])">登录</a>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="modal fade" id="duplicateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="duplicateModalLabel">保存文件</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">保存的位置已经包含了同名的文件，请选择您的操作：
+                    <div>
+                        已有文件：
+                        <div id="exist_name"></div>
+                        <div id="exist_date"></div><br>
+                        正在保存文件：
+                        <div id="keep_name"></div>
+                        <div id="keep_date"></div>
+                    </div>
+                    替换文件：将覆盖已有文件
+                    保留两个文件：将重命名已有文件
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                    <a class="btn btn-danger" href="javascript:void(0);" onclick="save_file_cover()">替换文件</a>
+                    <a class="btn btn-primary" href="javascript:void(0);" onclick="save_file_rename()">保留两个文件</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script th:src="@{/asserts/vendor/jquery/jquery.min.js}"></script>
     <script th:src="@{/asserts/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
@@ -418,13 +499,51 @@
         document.getElementById(close_id).style.display="block";
     }
 
-    function save_file(id, file_owner) {
+    function save_file_check(id, file_owner) {
         if (file_owner === id) {
             $('#warningModal').modal("show");
             return false;
         } else {
-            document.getElementById('keep_file').submit();
+            $.ajax({
+                type: "GET",
+                url: "/checkShareDuplicate",
+                data: $('#keep_file').serialize(),
+                cache: false,
+                dataType: "json",
+                success: function (result) {
+                    if ("self" in result) {
+                        if ("exist" in result) {
+                            const exist = result.exist;
+                            document.getElementById('exist_name').value = exist.name;
+                        }
+                        if ("keep" in result) {
+                            const keep = result.keep;
+                            document.getElementById('keep_name').value = keep.name;
+                        }
+                        $('#duplicateModal').modal('show');
+                    } else {
+                        alert('click');
+                        document.getElementById('keep_file').action="/keep_file";
+                        document.getElementById('keep_file').submit();
+                    }
+                    return false;
+                },
+                error: function (msg) {
+                    alert("发生错误");
+                    return false;
+                }
+            });
         }
+    }
+
+    function save_file_cover() {
+        document.getElementById('keep_file').action = "/keepFileWithCover";
+        document.getElementById('keep_file').submit();
+    }
+
+    function save_file_rename() {
+        document.getElementById('keep_file').action = "/keepFileWithRename";
+        document.getElementById('keep_file').submit();
     }
 
     function share_login(uuid, pass, sharer) {
@@ -454,7 +573,9 @@
     function close_sub_dir(id, owner, fid) {
         document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="block";
         document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="none";
-        var element_id = "li_" + id + "_" + owner + "_" + fid;
+        const icon = document.getElementById("icon_" + id + "_" + owner + "_" + fid);
+        icon.innerHTML = "<i style=\"color: lightskyblue\" class=\"fas fa-folder\"></i>";
+        const element_id = "li_" + id + "_" + owner + "_" + fid;
         $('#'+element_id+' ul').remove();
     }
 
@@ -463,8 +584,6 @@
             $('#loginModal').modal("show");
             return false;
         }
-        document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="none";
-        document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="block";
         var element_id = "li_" + id + "_" + owner + "_" + fid;
         var dir_con = document.getElementById(element_id);
         var dir_html = dir_con.innerHTML + "<ul>";
@@ -484,12 +603,19 @@
                         "        <div class='float-left'><a id=\"open_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: block\" href=\"javascript:void(0);\" onclick=\"get_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"addBtn\"></div></a></div>"+
                         "        <div class='float-left'><a id=\"close_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: none\" href=\"javascript:void(0);\" onclick=\"close_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"subBtn\"></div></a></div>"+
                         "        <div ><input type=\"radio\" name=\"targetDir\" id=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\" value=\""+this.id+"_"+this.owner+"_"+this.pid+"\"/>"+
-                        "        <label class=\"custom-radio\" for=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\">"+this.name+"</label></div>"+
+                        "        <label class=\"custom-radio\" for=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\">" +
+                        "        <span id=\"icon_"+this.id+"_"+this.owner+"_"+this.pid+"\" class=\"icon\">\n" +
+                        "             <i style=\"color: lightskyblue\" class=\"fas fa-folder\"></i>\n" +
+                        "        </span>"+this.name+"</label></div>"+
                         "        </div></li>";
                 });
                 dir_html += "</ul>";
                 //alert(dir_html);
                 dir_con.innerHTML = dir_html;
+                document.getElementById("open_" + id + "_" + owner + "_" + fid).style.display="none";
+                document.getElementById("close_" + id + "_" + owner + "_" + fid).style.display="block";
+                const icon = document.getElementById("icon_" + id + "_" + owner + "_" + fid);
+                icon.innerHTML = "<i style=\"color: lightskyblue\" class=\"fas fa-folder-open\"></i>";
             }
         });
     }
@@ -531,23 +657,25 @@
                 guide_con.innerHTML = guide_html;
                 //文件夹
                 $.each(dirList, function () {
-                    dir_html += "<tr id=\"tr"+this.id+"\">"+
-                        "<td>"+
-                        "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
-                        "               <p>"+this.name+"</p>" +
-                        "           </a>" +
-                        "       </td>" +
-                        "       <td>--</td>" +
-                        "       <td>"+ expire +"天</td>" +
-                        "   </tr>";
+                    dir_html += dir_string(this, expire, start_id, start_owner, start_fid);
+                    // dir_html += "<tr id=\"tr"+this.id+"\">"+
+                    //     "<td>"+
+                    //     "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+this.owner+","+this.id+","+this.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
+                    //     "               <p>"+this.name+"</p>" +
+                    //     "           </a>" +
+                    //     "       </td>" +
+                    //     "       <td>--</td>" +
+                    //     "       <td>"+ expire +"天</td>" +
+                    //     "   </tr>";
                 });
                 dir_con.innerHTML = dir_html;
                 //文件
                 $.each(docList, function () {
-                    doc_html += "<tr id=\"tr"+this.id+"\">"+
-                        "<td><p>"+this.name+"</p></td>"+
-                        "<td>"+getFileSize(this.len)+"</td>"+
-                        "<td>"+ expire +"天</td></tr>";
+                    doc_html += doc_string(this, expire);
+                    // doc_html += "<tr id=\"tr"+this.id+"\">"+
+                    //     "<td><p>"+this.name+"</p></td>"+
+                    //     "<td>"+getFileSize(this.len)+"</td>"+
+                    //     "<td>"+ expire +"天</td></tr>";
                 });
                 doc_con.innerHTML = doc_html;
             }
@@ -593,6 +721,57 @@
             fileSizeMsg = "文件超过1TB";
         }
         return fileSizeMsg;
+    }
+
+    function doc_string(obj, expire) {
+        let str = "<tr id=\"tr"+obj.id+"\"><td>";
+        if (obj.type === 1) {
+            str += "<span class=\"icon\">" +
+                "     <i style=\"color: cornflowerblue\" class=\"fas fa-file-alt fa-2x\"></i>" +
+                "</span>";
+        } else if (obj.type === 2) {
+            str += "<span class=\"icon\">\n" +
+                "    <i style=\"color: #09cb09\" class=\"fas fa-image fa-2x\"></i>\n" +
+                "</span>";
+        } else if (obj.type === 3) {
+            str += "<span class=\"icon\">\n" +
+                "    <i style=\"color: blueviolet\" class=\"fas fa-video fa-2x\"></i>\n" +
+                "</span>";
+        } else if (obj.type === 4) {
+            str += "<span class=\"icon\">\n" +
+                "    <i style=\"color: deeppink\" class=\"fas fa-music fa-2x\"></i>\n" +
+                "</span>";
+        } else if (obj.type === 5) {
+            str += "<span class=\"icon\">\n" +
+                "    <i style=\"color: #069706\" class=\"fas fa-file-code fa-2x\"></i>\n" +
+                "</span>";
+        } else if (obj.type === 6) {
+            str += "<span class=\"icon\">\n" +
+                "    <i style=\"color: gray\" class=\"fas fa-file fa-2x\"></i>\n" +
+                "</span>";
+        }
+        str += "</td>"+
+            "<td><span class=\"h5 m-0 text-dark\">" + obj.name + "</span></td>" +
+            "<td><span class=\"h5 m-0 text-dark\">" + getFileSize(obj.len) + "</span></td>" +
+            "<td><span class=\"h5 m-0 text-dark\">" + expire + "天</span></td></tr>";
+        return str;
+    }
+
+    function dir_string(obj, expire, start_id, start_owner, start_fid) {
+        return "<tr id=\"tr"+obj.id+"\">"+
+            "<td>" +
+            "    <span class=\"icon\">" +
+            "         <i style=\"color: lightskyblue\" class=\"fas fa-folder fa-2x\"></i>" +
+            "    </span>" +
+            "</td>"+
+            "<td>"+
+            "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
+            "               <span class='h5 m-0 text-sm-center'>"+obj.name+"</span>" +
+            "           </a>" +
+            "       </td>" +
+            "       <td><span class=\"h5 m-0 text-dark\">--</span></td>" +
+            "       <td><span class=\"h5 m-0 text-dark\">"+ expire +"天</span></td>" +
+            "   </tr>";
     }
 
 </script>

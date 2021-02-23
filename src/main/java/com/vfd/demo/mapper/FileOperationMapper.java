@@ -138,4 +138,11 @@ public interface FileOperationMapper {
      * @return
      */
     Boolean updateFileInfo(FileInfo fileInfo);
+
+    /**
+     * get count by id
+     * @param id
+     * @return
+     */
+    List<Integer> getCountById(Integer id);
 }

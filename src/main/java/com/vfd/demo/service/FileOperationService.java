@@ -126,4 +126,11 @@ public interface FileOperationService {
      * @return
      */
     Boolean updateFileInfo(FileInfo fileInfo);
+
+    /**
+     * get count by id
+     * @param id
+     * @return
+     */
+    Integer getCountById(Integer id);
 }

@@ -85,15 +85,15 @@
                         <!-- Dropdown - User Information -->
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                              aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Profile
                             </a>
-                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                 <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Settings
                             </a>
-                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#tipModal">
                                 <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Activity Log
                             </a>
@@ -130,6 +130,7 @@
                         <table class="table" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                             <tr>
+                                <th></th>
                                 <th>文档名</th>
                                 <th>大小</th>
                                 <th>删除时间</th>
@@ -139,6 +140,7 @@
                             </thead>
                             <tfoot>
                             <tr>
+                                <th></th>
                                 <th>文档名</th>
                                 <th>大小</th>
                                 <th>删除时间</th>
@@ -148,9 +150,32 @@
                             </tfoot>
                             <tbody id="dir_tbody">
                             <tr th:each="iter, iterStat:${trashInfos}" th:id="'tr' + ${iterStat.index}">
-                                <td th:text="${iter.getName()}"></td>
-                                <td th:text="${iter.convertToSize()}"></td>
-                                <td th:text="${iter.gainTime()}"></td>
+                                <td>
+                                    <span th:if="${iter.getType()==0}" class="icon">
+                                                <i style="color: lightskyblue" class="fas fa-folder fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==1}" class="icon">
+                                                <i style="color: cornflowerblue" class="fas fa-file-alt fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==2}" class="icon">
+                                                <i style="color: #09cb09" class="fas fa-image fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==3}" class="icon">
+                                                <i style="color: blueviolet" class="fas fa-video fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==4}" class="icon">
+                                                <i style="color: deeppink" class="fas fa-music fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==5}" class="icon">
+                                                <i style="color: #069706" class="fas fa-file-code fa-2x"></i>
+                                            </span>
+                                    <span th:if="${iter.getType()==6}" class="icon">
+                                                <i style="color: gray" class="fas fa-file fa-2x"></i>
+                                            </span>
+                                </td>
+                                <td><span class="h5 m-0 text-dark" th:text="${iter.getName()}"></span></td>
+                                <td><span class="h5 m-0 text-dark" th:text="${iter.convertToSize()}"></span></td>
+                                <td><span class="h5 m-0 text-dark" th:text="${iter.gainTime()}"></span></td>
                                 <td>
                                     <a th:id="'resume_tr_'+${iterStat.index}" class="btn btn-primary btn-circle"
                                     th:onclick="check([[${iter.getId()}]],[[${iter.getOwner()}]],[[${iter.getPid()}]],[[${iterStat.index}]]);">
@@ -162,7 +187,7 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </td>
-                                <td th:text="${iter.getExpire()}+'秒'"></td>
+                                <td><span class="h5 m-0 text-dark" th:text="${iter.getExpire()}+'秒'"></span></td>
                             </tr>
                             </tbody>
                         </table>
@@ -191,6 +216,25 @@
 
 <!-- Logout Modal-->
 <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">退出登陆？</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">选择“注销”即可退出当前帐号</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                <a class="btn btn-primary" href="/logout">注销</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- info Modal-->
+<div class="modal fade" id="tipModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

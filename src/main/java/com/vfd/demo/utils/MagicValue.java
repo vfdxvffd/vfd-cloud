@@ -11,4 +11,6 @@ public class MagicValue {
 
     //拼接链接的前缀
     public static String linkPrefix = "http://localhost:8080";
+
+    public static String fileAddress = "/home/vfdxvffd/vfd-cloud";
 }

@@ -4,6 +4,7 @@ import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.bean.TrashInfo;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
+import com.vfd.demo.utils.MagicValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -178,8 +183,6 @@ public class TrashController {
                         if (op) {       //覆盖
                             List<FileInfo> result = new ArrayList<>();
                             getAllSubFiles(duplicate,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
-                            System.out.println("覆盖,result = " + result);
-                            result.forEach(System.out::println);
                             fileOperationService.moveToTrash(duplicate,result);
                             FileInfo fileInfo = new FileInfo(Integer.parseInt(tmp[0]),tmp[1],0L,null,local,0,new Timestamp(new Date().getTime()),loginUserId);
                             List<Integer> pidByLocal1 = fileOperationService.getPidByLocal(local);
@@ -253,14 +256,41 @@ public class TrashController {
                         int count = 1;
                         while (true) {
                             boolean dup = false;
+                            String newName = headmanFile.getName() + "(" + count + ")";
+                            if (f.getType() > 0 && f.getName().contains(".")) {
+                                newName = nameWithCount(f.getName(), count);
+                            }
                             for (FileInfo fileInfo : byFid) {
-                                if (fileInfo.getName().equals(headmanFile.getName()+"("+count+")")) {
+                                if (fileInfo.getName().equals(newName)) {
                                     dup = true;
                                     break;
                                 }
                             }
                             if (!dup) {
-                                reNameDir(f, headmanFile.getName()+"("+count+")", loginUserId);
+                                Integer fileId = f.getId();
+                                String name = f.getName();
+                                int i = reNameDir(f, newName, loginUserId);
+                                if (f.getType() > 0) {
+                                    Integer countById = fileOperationService.getCountById(fileId);
+                                    if (countById > 0) {
+                                        //有多处引用此id的文件    另外复制一份来重命名
+                                        File file = new File(MagicValue.fileAddress + "/" + i);
+                                        boolean b = file.mkdirs();
+                                        File sourceFile = new File(MagicValue.fileAddress + "/" + fileId + "/" + name);
+                                        File destFile = new File(MagicValue.fileAddress + "/" + i + "/" + newName);
+                                        try {
+                                            copyFileUsingFileChannels(sourceFile,destFile);
+                                        } catch (IOException e) {
+                                            return "exception";
+                                        }
+                                    } else {
+                                        //仅有一处引用此id文件就是f, 可以直接重命名
+                                        File file = new File(MagicValue.fileAddress + "/" + fileId);
+                                        boolean b = file.renameTo(new File(MagicValue.fileAddress + "/" + i));
+                                        file = new File(MagicValue.fileAddress + "/" + i + "/" + name);
+                                        boolean b1 = file.renameTo(new File(MagicValue.fileAddress + "/" + i + "/" + newName));
+                                    }
+                                }
                                 break;
                             }
                             count++;
@@ -273,7 +303,6 @@ public class TrashController {
         headmanFile.setTime(new Timestamp(new Date().getTime()));
         fileOperationService.saveFileFullInfo(headmanFile);
         List<FileInfo> subFiles = (List<FileInfo>) map.get("subFiles");
-        System.out.println("size:" + subFiles.size());
         for (FileInfo file : subFiles) {
             List<Integer> pid = fileOperationService.getPidByLocal(file.getLocation());
             if (pid.size() > 0) {
@@ -303,25 +332,24 @@ public class TrashController {
         }
     }
 
-    public void reNameDir(FileInfo fileInfo, String name, Integer owner) {
+    public int reNameDir(FileInfo fileInfo, String name, Integer owner) {
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+"."+fileInfo.getName());
         Integer pid = null;
         if (pidByLocal.size() > 0) {
             pid = pidByLocal.get(0);
         }
-        System.out.println("pid = " + pid);
-        System.out.println("fileInfo = " + fileInfo);
-        System.out.println("delete = " + fileOperationService.deleteFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid()));
+        fileOperationService.deleteFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
         fileInfo.setId(null);
         fileInfo.setName(name);
         Boolean saveFile = fileOperationService.saveFile(fileInfo);
         if (!saveFile) {
             logger.error("不该出现的命名重复:fileInfo" + fileInfo + "\nname:" + name);
-            return;
+            return -1;
         }
         if (pid != null) {
             updateSubFilesLocation(fileInfo, pid, owner);
         }
+        return fileInfo.getId();
 
     }
 
@@ -337,6 +365,18 @@ public class TrashController {
             if (pidByLocal.size() > 0) {
                 updateSubFilesLocation(info, pidByLocal.get(0), owner);
             }
+        }
+    }
+
+    public String nameWithCount(String name, int count) {
+        String s = name.substring(0, name.lastIndexOf("."));
+        String suffix = name.substring(name.lastIndexOf(".") + 1);
+        return s+"("+count+")"+"."+suffix;
+    }
+
+    private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
+        try (FileChannel inputChannel = new FileInputStream(source).getChannel(); FileChannel outputChannel = new FileOutputStream(dest).getChannel()) {
+            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
         }
     }
 }

@@ -139,4 +139,9 @@
     <select id="getTrashInfosByHeadman" resultType="com.vfd.demo.bean.TrashInfo">
         select * from trash where headman = #{headman}
     </select>
+
+    <!--List<Integer> getCountById(Integer id);-->
+    <select id="getCountById" resultType="java.lang.Integer">
+        select owner from file where id = #{id}
+    </select>
 </mapper>
