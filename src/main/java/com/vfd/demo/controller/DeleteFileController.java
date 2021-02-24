@@ -52,7 +52,7 @@ public class DeleteFileController {
                                @RequestParam("fid") Integer fid) {
         FileInfo dir = fileOperationService.getFileById(id, owner, fid);
         List<FileInfo> result = new ArrayList<>();
-        getAllSubFiles(dir,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
+        fileOperationService.getAllSubFiles(dir,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
         Map<String, Object> map = new HashMap<>(2);
         TrashInfo trashInfo = new TrashInfo(dir,new Timestamp(new Date().getTime()),0L);
         map.put("headman",trashInfo);
@@ -64,21 +64,6 @@ public class DeleteFileController {
             return "success";
         } else {
             return "fail";
-        }
-    }
-
-    public void getAllSubFiles(FileInfo fileInfo, List<FileInfo> result) {
-        List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+
-                "."+fileInfo.getName());
-        List<FileInfo> subFiles = new ArrayList<>();
-        if (pidByLocal.size() > 0) {
-            subFiles = fileOperationService.getFilesByFid(pidByLocal.get(0), fileInfo.getOwner());
-        }
-        for (FileInfo f:subFiles) {
-            result.add(f);
-            if (f.getType() == 0) {
-                getAllSubFiles(f,result);
-            }
         }
     }
 }

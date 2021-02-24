@@ -2,17 +2,13 @@ package com.vfd.demo.controller;
 
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.service.FileOperationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpSession;
 import java.io.File;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -190,7 +186,7 @@ public class UploadFileController {
         result.put("dirs", dirs);
         result.put("docs", docs);
         result.put("currentDir", fileInfo);
-        List<FileInfo> path = getPath(id, fileInfo);
+        List<FileInfo> path = fileOperationService.getPath(id, fileInfo);
         result.put("path", path);
         return result;
     }
@@ -231,25 +227,5 @@ public class UploadFileController {
                 return fail;
             }
         }
-    }
-
-    public List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
-        String[] dirId = targetDir.getLocation().split(">");
-        ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        StringBuilder local = new StringBuilder();
-        for (String dir : dirId) {
-            String[] split = dir.split("\\.");
-            if (split.length == 2) {
-                List<Integer> pre_id = fileOperationService.getPidByLocal(new String(local));
-                if (pre_id.size() > 0) {
-                    fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id.get(0)));
-                    local.append(">").append(dir);
-                }
-                else {
-                    System.out.println("err acc");
-                }
-            }
-        }
-        return fileInfos;
     }
 }

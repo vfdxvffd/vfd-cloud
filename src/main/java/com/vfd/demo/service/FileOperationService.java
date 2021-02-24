@@ -2,8 +2,10 @@ package com.vfd.demo.service;
 
 import com.vfd.demo.bean.FileInfo;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -133,4 +135,62 @@ public interface FileOperationService {
      * @return
      */
     Integer getCountById(Integer id);
+
+    /**
+     *
+     * @param id
+     * @param targetDir
+     * @return
+     */
+    List<FileInfo> getPath(Integer id, FileInfo targetDir);
+
+    /**
+     *
+     * @param fileInfo
+     * @param result
+     */
+    void getAllSubFiles(FileInfo fileInfo, List<FileInfo> result);
+
+    /**
+     *
+     * @param fileInfo
+     * @param result
+     * @param location
+     * @param userId
+     */
+    void getAllSubFileInfo(FileInfo fileInfo, List<FileInfo> result, String location, Integer userId);
+
+    /**
+     *
+     * @param fileInfo
+     * @param name
+     * @param owner
+     * @return
+     */
+    int reNameDir(FileInfo fileInfo, String name, Integer owner);
+
+    /**
+     *
+     * @param name
+     * @param count
+     * @return
+     */
+    String nameWithCount(String name, int count);
+
+    /**
+     *
+     * @param source
+     * @param dest
+     * @throws IOException
+     */
+     void copyFileUsingFileChannels(File source, File dest) throws IOException;
+
+    /**
+     *
+     * @param byFid
+     * @param headmanFile
+     * @param f
+     * @return
+     */
+    String getNewName(List<FileInfo> byFid, FileInfo f);
 }

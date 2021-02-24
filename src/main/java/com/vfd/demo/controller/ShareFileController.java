@@ -53,7 +53,12 @@ public class ShareFileController {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    Logger logger = LoggerFactory.getLogger(getClass());
+    private Integer userId;
+    private String userName;
+    private FileInfo fileInfo;
+    private FileInfo targetDir;
+    private String local;
+    private String location;
 
     @ResponseBody
     @RequestMapping("/getShareLink")
@@ -227,48 +232,32 @@ public class ShareFileController {
         return map;
     }
 
+    public void setValue(HttpSession session,
+                         Integer id, Integer fid, Integer owner, String target) {
+        userId = (Integer) session.getAttribute("loginUserId");
+        userName = (String) session.getAttribute("loginUserName");
+        fileInfo = fileOperationService.getFileById(id,owner,fid);
+        String[] s = target.split("_");
+        targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
+        local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+        location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+    }
+
     @RequestMapping("/keep_file")
     public ModelAndView keepFile (HttpSession session,
                                   @RequestParam("id") Integer id,
                                   @RequestParam("fid") Integer fid,
                                   @RequestParam("owner") Integer owner,
                                   @RequestParam("targetDir") String target) {
-        Integer userId = (Integer) session.getAttribute("loginUserId");
-        String userName = (String) session.getAttribute("loginUserName");
-        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-        String[] s = target.split("_");
-        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
-        fileInfo.setLocation(location);
-        List<FileInfo> all = new ArrayList<>();
-        List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
-        if (pidByLocal.size() > 0) {
-            fileInfo.setPid(pidByLocal.get(0));
-        } else {
-            fileInfo.setPid(null);
-        }
-        fileInfo.setTime(new Timestamp(new Date().getTime()));
-        List<FileInfo> allSubFiles = new ArrayList<>();
-        allSubFiles.add(fileInfo);
-        getAllSubFileInfo(fileInfo, allSubFiles, local, userId);
-        if (allSubFiles.size() > 0) {
-            fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
-        }
-        rabbitTemplate.convertAndSend("log.direct","info","分享的文件保存成功:" + userId +
-                "fileInfo:" + fileInfo + "targetDir:" + targetDir);
-        ModelAndView modelAndView = new ModelAndView("index");
-        modelAndView.addObject("username",userName);
-        modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",targetDir); //用户根文件夹id
-        modelAndView.addObject("location",targetDir.getLocation());  //位置
-        pidByLocal = fileOperationService.getPidByLocal(location);
-        if (pidByLocal.size() > 0) {
-            all = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);    //所有文件
-        }
-        AccountController.getDirsAndDocs(modelAndView, all);
-        modelAndView.addObject("path",getPath(id, targetDir));
-        return modelAndView;
+//        Integer userId = (Integer) session.getAttribute("loginUserId");
+//        String userName = (String) session.getAttribute("loginUserName");
+//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
+//        String[] s = target.split("_");
+//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
+//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+        setValue(session,id,fid,owner,target);
+        return saveShareFile(userId,userName,fileInfo,targetDir,local,location);
     }
 
     @RequestMapping("/keepFileWithCover")
@@ -277,56 +266,27 @@ public class ShareFileController {
                                           @RequestParam("fid") Integer fid,
                                           @RequestParam("owner") Integer owner,
                                           @RequestParam("targetDir") String target) {
-        Integer userId = (Integer) session.getAttribute("loginUserId");
-        String userName = (String) session.getAttribute("loginUserName");
-        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-        String[] s = target.split("_");
-        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+//        Integer userId = (Integer) session.getAttribute("loginUserId");
+//        String userName = (String) session.getAttribute("loginUserName");
+//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
+//        String[] s = target.split("_");
+//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
+//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+        setValue(session,id,fid,owner,target);
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
         if (pidByLocal.size() > 0) {
             List<FileInfo> filesByFid = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);
             for (FileInfo f:filesByFid) {
                 if (f.getName().equals(fileInfo.getName())) {   //覆盖，即删除f及f以下的子文件（夹）
                     List<FileInfo> result = new ArrayList<>();
-                    getAllSubFiles(f,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
-                    System.out.println("覆盖,result = " + result);
-                    result.forEach(System.out::println);
+                    fileOperationService.getAllSubFiles(f,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
                     fileOperationService.moveToTrash(f,result);
                     break;
                 }
             }
         }
-        fileInfo.setLocation(location);
-        List<FileInfo> all = new ArrayList<>();
-        pidByLocal = fileOperationService.getPidByLocal(location);
-        if (pidByLocal.size() > 0) {
-            fileInfo.setPid(pidByLocal.get(0));
-        } else {
-            fileInfo.setPid(null);
-        }
-        fileInfo.setTime(new Timestamp(new Date().getTime()));
-        List<FileInfo> allSubFiles = new ArrayList<>();
-        allSubFiles.add(fileInfo);
-        getAllSubFileInfo(fileInfo, allSubFiles, local, userId);
-        if (allSubFiles.size() > 0) {
-            fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
-        }
-        rabbitTemplate.convertAndSend("log.direct","info","分享的文件保存成功:" + userId +
-                "fileInfo:" + fileInfo + "targetDir:" + targetDir);
-        ModelAndView modelAndView = new ModelAndView("index");
-        modelAndView.addObject("username",userName);
-        modelAndView.addObject("id",userId);     //将用户id发送到index页面
-        modelAndView.addObject("currentDir",targetDir); //用户根文件夹id
-        modelAndView.addObject("location",targetDir.getLocation());  //位置
-        pidByLocal = fileOperationService.getPidByLocal(location);
-        if (pidByLocal.size() > 0) {
-            all = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);    //所有文件
-        }
-        AccountController.getDirsAndDocs(modelAndView, all);
-        modelAndView.addObject("path",getPath(id, targetDir));
-        return modelAndView;
+        return saveShareFile(userId, userName, fileInfo, targetDir, local, location);
     }
 
     @RequestMapping("/keepFileWithRename")
@@ -335,67 +295,54 @@ public class ShareFileController {
                                           @RequestParam("fid") Integer fid,
                                           @RequestParam("owner") Integer owner,
                                           @RequestParam("targetDir") String target) {
-        ModelAndView modelAndView = new ModelAndView("index");
-        Integer userId = (Integer) session.getAttribute("loginUserId");
-        String userName = (String) session.getAttribute("loginUserName");
-        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-        String[] s = target.split("_");
-        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+//        Integer userId = (Integer) session.getAttribute("loginUserId");
+//        String userName = (String) session.getAttribute("loginUserName");
+//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
+//        String[] s = target.split("_");
+//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
+//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
+//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
+        setValue(session,id,fid,owner,target);
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
         if (pidByLocal.size() > 0) {
             List<FileInfo> filesByFid = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);
             for (FileInfo f:filesByFid) {
                 if (f.getName().equals(fileInfo.getName())) {   //重命名，即重命名f及修改f以下的子文件（夹）的location
-                    int count = 1;
-                    while (true) {
-                        boolean dup = false;
-                        String newName = f.getName() + "(" + count + ")";
-                        if (f.getType() > 0 && f.getName().contains(".")) {
-                            newName = nameWithCount(f.getName(), count);
-                        }
-                        for (FileInfo info : filesByFid) {
-                            if (info.getName().equals(newName)) {
-                                dup = true;
-                                break;
+                    String newName = fileOperationService.getNewName(filesByFid,f);
+                    Integer fileId = f.getId();
+                    String name = f.getName();
+                    int i = fileOperationService.reNameDir(f, newName, userId);
+                    if (f.getType() > 0) {
+                        Integer countById = fileOperationService.getCountById(fileId);
+                        if (countById > 0) {
+                            //有多处引用此id的文件    另外复制一份来重命名
+                            File file = new File(MagicValue.fileAddress + "/" + i);
+                            boolean b = file.mkdirs();
+                            File sourceFile = new File(MagicValue.fileAddress + "/" + fileId + "/" + name);
+                            File destFile = new File(MagicValue.fileAddress + "/" + i + "/" + newName);
+                            try {
+                                fileOperationService.copyFileUsingFileChannels(sourceFile,destFile);
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
+                        } else {
+                            //仅有一处引用此id文件就是f, 可以直接重命名
+                            File file = new File(MagicValue.fileAddress + "/" + fileId);
+                            boolean b = file.renameTo(new File(MagicValue.fileAddress + "/" + i));
+                            file = new File(MagicValue.fileAddress + "/" + i + "/" + name);
+                            boolean b1 = file.renameTo(new File(MagicValue.fileAddress + "/" + i + "/" + newName));
                         }
-                        if (!dup) {
-                            Integer fileId = f.getId();
-                            String name = f.getName();
-                            int i = reNameDir(f, newName, userId);
-                            if (f.getType() > 0) {
-                                Integer countById = fileOperationService.getCountById(fileId);
-                                if (countById > 0) {
-                                    //有多处引用此id的文件    另外复制一份来重命名
-                                    File file = new File(MagicValue.fileAddress + "/" + i);
-                                    boolean b = file.mkdirs();
-                                    File sourceFile = new File(MagicValue.fileAddress + "/" + fileId + "/" + name);
-                                    File destFile = new File(MagicValue.fileAddress + "/" + i + "/" + newName);
-                                    try {
-                                        copyFileUsingFileChannels(sourceFile,destFile);
-                                    } catch (IOException e) {
-                                        modelAndView.addObject("exception","IOException");
-                                    }
-                                } else {
-                                    //仅有一处引用此id文件就是f, 可以直接重命名
-                                    File file = new File(MagicValue.fileAddress + "/" + fileId);
-                                    boolean b = file.renameTo(new File(MagicValue.fileAddress + "/" + i));
-                                    file = new File(MagicValue.fileAddress + "/" + i + "/" + name);
-                                    boolean b1 = file.renameTo(new File(MagicValue.fileAddress + "/" + i + "/" + newName));
-                                }
-                            }
-                            break;
-                        }
-                        count++;
                     }
                     break;
                 }
             }
         }
+        return saveShareFile(userId, userName, fileInfo, targetDir, local, location);
+    }
+
+    public ModelAndView saveShareFile(Integer userId, String userName, FileInfo fileInfo, FileInfo targetDir, String local, String location) {
+        List<Integer> pidByLocal;
         fileInfo.setLocation(location);
-        List<FileInfo> all = new ArrayList<>();
         pidByLocal = fileOperationService.getPidByLocal(location);
         if (pidByLocal.size() > 0) {
             fileInfo.setPid(pidByLocal.get(0));
@@ -405,93 +352,25 @@ public class ShareFileController {
         fileInfo.setTime(new Timestamp(new Date().getTime()));
         List<FileInfo> allSubFiles = new ArrayList<>();
         allSubFiles.add(fileInfo);
-        getAllSubFileInfo(fileInfo, allSubFiles, local, userId);
-        if (allSubFiles.size() > 0) {
-            fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
-        }
+        fileOperationService.getAllSubFileInfo(fileInfo, allSubFiles, local, userId);
+        fileOperationService.keepFiles(allSubFiles, userId);        //保存到数据库
         rabbitTemplate.convertAndSend("log.direct","info","分享的文件保存成功:" + userId +
                 "fileInfo:" + fileInfo + "targetDir:" + targetDir);
+        ModelAndView modelAndView = new ModelAndView("index");
         modelAndView.addObject("username",userName);
         modelAndView.addObject("id",userId);     //将用户id发送到index页面
         modelAndView.addObject("currentDir",targetDir); //用户根文件夹id
         modelAndView.addObject("location",targetDir.getLocation());  //位置
         pidByLocal = fileOperationService.getPidByLocal(location);
+        List<FileInfo> all = new ArrayList<>();
         if (pidByLocal.size() > 0) {
             all = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);    //所有文件
         }
         AccountController.getDirsAndDocs(modelAndView, all);
-        modelAndView.addObject("path",getPath(id, targetDir));
+        modelAndView.addObject("path",fileOperationService.getPath(userId, targetDir));
         return modelAndView;
     }
 
-    public List<FileInfo> getPath(@RequestParam("id") Integer id, FileInfo targetDir) {
-        String[] dirId = targetDir.getLocation().split(">");
-        ArrayList<FileInfo> fileInfos = new ArrayList<>();
-        StringBuilder local = new StringBuilder();
-        for (String dir : dirId) {
-            String[] split = dir.split("\\.");
-            if (split.length == 2) {
-                List<Integer> pre_id = fileOperationService.getPidByLocal(new String(local));
-                if (pre_id.size() > 0) {
-                    fileInfos.add(new FileInfo(Integer.parseInt(split[0]), split[1], id, pre_id.get(0)));
-                    local.append(">").append(dir);
-                }
-                else {
-                    System.out.println("err acc");
-                }
-            }
-        }
-        return fileInfos;
-    }
-
-    public void getAllSubFiles(FileInfo fileInfo, List<FileInfo> result) {
-        List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+
-                "."+fileInfo.getName());
-        List<FileInfo> subFiles = new ArrayList<>();
-        if (pidByLocal.size() > 0) {
-            subFiles = fileOperationService.getFilesByFid(pidByLocal.get(0), fileInfo.getOwner());
-        }
-        for (FileInfo f:subFiles) {
-            result.add(f);
-            if (f.getType() == 0) {
-                getAllSubFiles(f,result);
-            }
-        }
-    }
-
-    public void getAllSubFileInfo(FileInfo fileInfo, List<FileInfo> result, String location, Integer userId) {
-        List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
-        List<FileInfo> subFiles = new ArrayList<>();
-        if (pidByLocal.size() > 0) {
-            subFiles = fileOperationService.getFilesByFid(pidByLocal.get(0), fileInfo.getOwner());
-        }
-        Timestamp timestamp = new Timestamp(new Date().getTime());
-        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-        for (int i = 0; i < subFiles.size(); i++) {
-            FileInfo file = subFiles.get(i);
-            String l = file.getLocation() + ">" + file.getId() + "." + file.getName();
-            file.setTime(timestamp);
-            file.setLocation(local);
-            if (i == 0) {
-                int owner = file.getOwner();
-                file.setOwner(userId);
-                List<Integer> pid = fileOperationService.getPidByLocal(local);
-                if (pid.size() > 0) {
-                    file.setPid(pid.get(0));
-                } else {
-                    file.setPid(null);
-                }
-                fileOperationService.saveFileFullInfo(file);
-                file.setOwner(owner);
-            } else {
-                file.setPid(fileOperationService.getPidByLocal(local).get(0));
-                result.add(file);
-            }
-            if (file.getType() == 0) {
-                getAllSubFileInfo(file, result, l, userId);
-            }
-        }
-    }
 
     @RequestMapping("/getAllLink")
     public ModelAndView getAllLink(HttpSession session) {
@@ -531,55 +410,7 @@ public class ShareFileController {
         Integer loginUserId = (Integer) session.getAttribute("loginUserId");
         String key = "shareFile:" + loginUserId + ":*";
         redisService.del(redisService.getKey(key).toArray(new String[0]));
-        rabbitTemplate.convertAndSend("log.direct","info","用户所有分享链接删除成功:" + loginUserId);
+        rabbitTemplate.convertAndSend("log.direct", "info", "用户所有分享链接删除成功:" + loginUserId);
         return "success";
-    }
-
-    public int reNameDir(FileInfo fileInfo, String name, Integer owner) {
-        List<Integer> pidByLocal = fileOperationService.getPidByLocal(fileInfo.getLocation()+">"+fileInfo.getId()+"."+fileInfo.getName());
-        Integer pid = null;
-        if (pidByLocal.size() > 0) {
-            pid = pidByLocal.get(0);
-        }
-        fileOperationService.deleteFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
-        fileInfo.setId(null);
-        fileInfo.setName(name);
-        Boolean saveFile = fileOperationService.saveFile(fileInfo);
-        if (!saveFile) {
-            logger.error("不该出现的命名重复:fileInfo" + fileInfo + "\nname:" + name);
-            return -1;
-        }
-        if (pid != null) {
-            updateSubFilesLocation(fileInfo, pid, owner);
-        }
-        return fileInfo.getId();
-
-    }
-
-    public void updateSubFilesLocation(FileInfo fileInfo, Integer pid, Integer owner) {
-        List<FileInfo> filesByFid = fileOperationService.getFilesByFid(pid, owner);
-        for (FileInfo info : filesByFid) {
-            List<Integer> pidByLocal = fileOperationService.getPidByLocal(info.getLocation()+">"+info.getId()+"."+info.getName());
-            FileInfo file = new FileInfo(info.getId(),info.getPid(),info.getOwner());
-            String location = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-            file.setLocation(location);
-            fileOperationService.updateFileInfo(file);
-            info.setLocation(location);
-            if (pidByLocal.size() > 0) {
-                updateSubFilesLocation(info, pidByLocal.get(0), owner);
-            }
-        }
-    }
-
-    public String nameWithCount(String name, int count) {
-        String s = name.substring(0, name.lastIndexOf("."));
-        String suffix = name.substring(name.lastIndexOf(".") + 1);
-        return s+"("+count+")"+"."+suffix;
-    }
-
-    private static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        try (FileChannel inputChannel = new FileInputStream(source).getChannel(); FileChannel outputChannel = new FileOutputStream(dest).getChannel()) {
-            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        }
     }
 }
