@@ -3,18 +3,13 @@ package com.vfd.demo.controller;
 import com.vfd.demo.bean.FileInfo;
 import com.vfd.demo.bean.ShareInfo;
 import com.vfd.demo.bean.UserAccInfo;
-import com.vfd.demo.mapper.FileOperationMapper;
 import com.vfd.demo.service.FileOperationService;
 import com.vfd.demo.service.RedisService;
 import com.vfd.demo.service.UserLoginService;
 import com.vfd.demo.utils.MagicValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.hash.Jackson2HashMapper;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,11 +19,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -48,8 +39,6 @@ public class ShareFileController {
     FileOperationService fileOperationService;
     @Autowired
     UserLoginService userLoginService;
-    @Autowired
-    FileOperationMapper fileOperationMapper;
     @Autowired
     RabbitTemplate rabbitTemplate;
 
@@ -99,11 +88,17 @@ public class ShareFileController {
         String key = "shareFile:"+sharer+":"+uuid;
         boolean hasKey = redisService.hasKey(key);
         if (hasKey) {
+            Map<Object, Object> info = redisService.hmget(key);
+            FileInfo fileInfo = (FileInfo) info.get("fileInfo");
+            FileInfo fileById = fileOperationService.getFileById(fileInfo.getId(), fileInfo.getOwner(), fileInfo.getPid());
+            if (fileById == null) {
+                return new ModelAndView("new");
+            }
             modelAndView = new ModelAndView("share-file");
             modelAndView.addObject("uuid",uuid);
             modelAndView.addObject("sharer",sharer);
         } else {
-            modelAndView = new ModelAndView("blank");   //来晚了，文件分享被取消了
+            modelAndView = new ModelAndView("new");   //来晚了，文件分享被取消了
         }
         return modelAndView;
     }
@@ -143,7 +138,6 @@ public class ShareFileController {
                 }
                 if (userEmail != null && userPassword != null) {
                     UserAccInfo login = userLoginService.login(userEmail);
-                    System.out.println("login:"+login);
                     if (login != null && userPassword.equals(login.getPassword())) {
                         session.setAttribute("loginUserId",login.getId());
                         session.setAttribute("loginUserName",login.getName());
@@ -221,6 +215,10 @@ public class ShareFileController {
             FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);     //要保存的文件
             List<FileInfo> filesByFid = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);
             for (FileInfo f:filesByFid) {
+                if (f.getId().equals(fileInfo.getId())) {
+                    map.put("dup","true");
+                    return map;
+                }
                 if (f.getName().equals(fileInfo.getName())) {
                     map.put("self","true");
                     map.put("exist",f);
@@ -249,15 +247,8 @@ public class ShareFileController {
                                   @RequestParam("fid") Integer fid,
                                   @RequestParam("owner") Integer owner,
                                   @RequestParam("targetDir") String target) {
-//        Integer userId = (Integer) session.getAttribute("loginUserId");
-//        String userName = (String) session.getAttribute("loginUserName");
-//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-//        String[] s = target.split("_");
-//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
         setValue(session,id,fid,owner,target);
-        return saveShareFile(userId,userName,fileInfo,targetDir,local,location);
+        return saveShareFile();
     }
 
     @RequestMapping("/keepFileWithCover")
@@ -266,27 +257,12 @@ public class ShareFileController {
                                           @RequestParam("fid") Integer fid,
                                           @RequestParam("owner") Integer owner,
                                           @RequestParam("targetDir") String target) {
-//        Integer userId = (Integer) session.getAttribute("loginUserId");
-//        String userName = (String) session.getAttribute("loginUserName");
-//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-//        String[] s = target.split("_");
-//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
         setValue(session,id,fid,owner,target);
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
         if (pidByLocal.size() > 0) {
-            List<FileInfo> filesByFid = fileOperationService.getFilesByFid(pidByLocal.get(0), userId);
-            for (FileInfo f:filesByFid) {
-                if (f.getName().equals(fileInfo.getName())) {   //覆盖，即删除f及f以下的子文件（夹）
-                    List<FileInfo> result = new ArrayList<>();
-                    fileOperationService.getAllSubFiles(f,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
-                    fileOperationService.moveToTrash(f,result);
-                    break;
-                }
-            }
+            fileOperationService.coverDupFile(pidByLocal, userId, fileInfo);
         }
-        return saveShareFile(userId, userName, fileInfo, targetDir, local, location);
+        return saveShareFile();
     }
 
     @RequestMapping("/keepFileWithRename")
@@ -295,13 +271,6 @@ public class ShareFileController {
                                           @RequestParam("fid") Integer fid,
                                           @RequestParam("owner") Integer owner,
                                           @RequestParam("targetDir") String target) {
-//        Integer userId = (Integer) session.getAttribute("loginUserId");
-//        String userName = (String) session.getAttribute("loginUserName");
-//        FileInfo fileInfo = fileOperationService.getFileById(id,owner,fid);
-//        String[] s = target.split("_");
-//        FileInfo targetDir = fileOperationService.getFileById(Integer.parseInt(s[0]),Integer.parseInt(s[1]),Integer.parseInt(s[2]));
-//        String local = fileInfo.getLocation() + ">" + fileInfo.getId() + "." + fileInfo.getName();
-//        String location = targetDir.getLocation() + ">" + targetDir.getId()+"." + targetDir.getName();
         setValue(session,id,fid,owner,target);
         List<Integer> pidByLocal = fileOperationService.getPidByLocal(location);
         if (pidByLocal.size() > 0) {
@@ -337,10 +306,10 @@ public class ShareFileController {
                 }
             }
         }
-        return saveShareFile(userId, userName, fileInfo, targetDir, local, location);
+        return saveShareFile();
     }
 
-    public ModelAndView saveShareFile(Integer userId, String userName, FileInfo fileInfo, FileInfo targetDir, String local, String location) {
+    public ModelAndView saveShareFile() {
         List<Integer> pidByLocal;
         fileInfo.setLocation(location);
         pidByLocal = fileOperationService.getPidByLocal(location);

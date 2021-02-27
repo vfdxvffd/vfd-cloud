@@ -73,6 +73,7 @@ public class UploadFileController {
         map.put("application/x-sql", 5);
         map.put("application/json", 5);
         map.put("text/x-java-source", 5);
+        map.put("text/x-java", 5);
     }
 
 

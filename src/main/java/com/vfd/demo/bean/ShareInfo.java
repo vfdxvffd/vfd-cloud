@@ -87,4 +87,27 @@ public class ShareInfo {
     public void setExpire(Long expire) {
         this.expire = expire;
     }
+
+    public String formatExpire() {
+        long theTime = this.expire;// 需要转换的时间秒
+        int day_time = 24 * 60 * 60;
+        long day = theTime / day_time;
+        if (day > 0) {
+            return (day+1) + "天";
+        } else {
+            int hour_time = 3600;
+            int hour = (int) (theTime / hour_time);
+            if (hour > 0) {
+                return (hour+1) + "小时";
+            } else {
+                int min_time = 60;
+                int min = (int) (theTime/min_time);
+                if (min > 0) {
+                    return (min+1) + "分钟";
+                } else {
+                    return theTime + "秒钟";
+                }
+            }
+        }
+    }
 }

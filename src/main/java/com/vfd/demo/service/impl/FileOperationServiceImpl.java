@@ -320,4 +320,16 @@ public class FileOperationServiceImpl implements FileOperationService {
             count++;
         }
     }
+
+    public void coverDupFile(List<Integer> pidByLocal, Integer userId, FileInfo fileInfo) {
+        List<FileInfo> filesByFid = getFilesByFid(pidByLocal.get(0), userId);
+        for (FileInfo f:filesByFid) {
+            if (f.getName().equals(fileInfo.getName())) {   //覆盖，即删除f及f以下的子文件（夹）
+                List<FileInfo> result = new ArrayList<>();
+                getAllSubFiles(f,result);     //将待移动的文件（夹）及其子目录下所有的文件（夹）保存起来
+                moveToTrash(f,result);
+                break;
+            }
+        }
+    }
 }

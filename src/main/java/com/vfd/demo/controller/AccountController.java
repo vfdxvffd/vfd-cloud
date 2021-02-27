@@ -96,16 +96,17 @@ public class AccountController {
         //从缓存中获取验证码
         if (!exampleInputPassword.equals(exampleRepeatPassword)) {
             modelAndView.addObject("err","两次输入密码不一致");
-            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时密码不一致,email:" + exampleInputEmail + ";两次的密码分别为:" + exampleInputPassword + "和" + exampleRepeatPassword);
+            return modelAndView;
+        }
+        if (exampleInputPassword.length() < 10) {
+            modelAndView.addObject("err","密码至少10位");
             return modelAndView;
         }
         String verificationCode = (String) redisService.get(exampleInputEmail+":verificationCode");
         if (verificationCode == null) {
             modelAndView.addObject("err","验证码过期");
-            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码过期,email:" + exampleInputEmail);
         } else if (!exampleInputVerification.equals(verificationCode)) {  //验证码错误
             modelAndView.addObject("err","验证码错误");
-            rabbitTemplate.convertAndSend("log.direct","info","register:用户注册时验证码错误,email:" + exampleInputEmail + "输入的验证码和正确的分别是：" + exampleInputVerification + "和" + verificationCode);
         } else {    //验证码正确
             Integer register = userLoginService.register(exampleFirstName + exampleLastName, exampleInputEmail, exampleInputPassword);
             if (register == -1) {

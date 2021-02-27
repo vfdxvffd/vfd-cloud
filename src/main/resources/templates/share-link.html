@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>分享链接</title>
+    <title>vfd-cloud - 分享链接</title>
     <!-- Custom fonts for this template-->
     <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
     <link
@@ -100,7 +100,7 @@
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Logout
+                                退出
                             </a>
                         </div>
                     </li>
@@ -174,15 +174,26 @@
                                             </span>
                                     </td>
                                     <td><span class="h5 m-0 text-dark" th:text="${iter.getName()}"></span></td>
-                                    <td><span class="h5 m-0 text-dark" th:text="${iter.getLink()}"></span></td>
+                                    <td>
+                                        <form class="user">
+                                            <div class="form-group">
+                                                <input readonly="readonly" type="text" class="form-control form-control-user" th:value="${iter.getLink()}"
+                                                       th:id="'link_' + ${iterStat.index}">
+                                            </div>
+                                        </form>
+
                                     <td><span class="h5 m-0 text-dark" th:text="${iter.getPass()}"></span></td>
                                     <td>
-                                        <a href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                        <a title="复制" href="javascript:void(0);"
+                                           th:onclick="copy_link([[${iterStat.index}]]);" class="btn btn-success btn-circle">
+                                            <i class="fas fa-copy"></i>
+                                        </a>
+                                        <a title="取消分享" href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                            th:onclick="Values([[${iter.getUuid()}]],[[${iterStat.index}]]);" class="btn btn-danger btn-circle">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
-                                    <td><span class="h5 m-0 text-dark" th:text="${iter.getExpire()}+'秒'"></span></td>
+                                    <td><span class="h5 m-0 text-dark" th:text="${iter.formatExpire()}"></span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -195,7 +206,7 @@
         <footer class="sticky-footer bg-white">
             <div class="container my-auto">
                 <div class="copyright text-center my-auto">
-                    <span>Copyright &copy; vfdxvffd.cn 2021</span>
+                    <span>Copyright &copy; <a href="http://www.vfdxvffd.cn">vfdxvffd.cn</a> 2021</span>
                 </div>
             </div>
         </footer>
@@ -210,28 +221,6 @@
 </a>
 
 <!-- Logout Modal-->
-<div class="modal fade" id="tipModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="tipModalLabel">In Plan</h5>
-                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <!--Select "Logout" below if you are ready to end your current session.-->
-            <div class="modal-body">此功能正在加紧开发中...</div>
-            <div class="modal-footer">
-                <!--<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
-                <button class="btn btn-primary" type="button" data-dismiss="modal">确认</button>
-                <!--<a class="btn btn-primary" href="login.html">Logout</a>-->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Logout Modal-->
 <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -242,10 +231,10 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">选择“注销”即可退出当前帐号</div>
+            <div class="modal-body">选择“退出”即可退出当前帐号</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                <a class="btn btn-primary" href="/logout">注销</a>
+                <a class="btn btn-primary" href="/logout">退出</a>
             </div>
         </div>
     </div>
@@ -335,6 +324,12 @@
 </body>
 
 <script type="text/javascript">
+
+    function copy_link(index) {
+        document.getElementById('link_'+index).select();
+        document.execCommand("copy");
+        alert('复制成功！');
+    }
 
     function Values(uuid, index) {
         $('#deleteUUID').val(uuid);

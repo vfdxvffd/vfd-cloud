@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>回收站</title>
+    <title>vfd-cloud - 回收站</title>
     <!-- Custom fonts for this template-->
     <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
     <link
@@ -100,7 +100,7 @@
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Logout
+                                退出
                             </a>
                         </div>
                     </li>
@@ -177,17 +177,17 @@
                                 <td><span class="h5 m-0 text-dark" th:text="${iter.convertToSize()}"></span></td>
                                 <td><span class="h5 m-0 text-dark" th:text="${iter.gainTime()}"></span></td>
                                 <td>
-                                    <a th:id="'resume_tr_'+${iterStat.index}" class="btn btn-primary btn-circle"
+                                    <a title="还原" th:id="'resume_tr_'+${iterStat.index}" class="btn btn-primary btn-circle"
                                     th:onclick="check([[${iter.getId()}]],[[${iter.getOwner()}]],[[${iter.getPid()}]],[[${iterStat.index}]]);">
                                         <i class="fas fa-redo-alt"></i>
                                     </a>
-                                    <a th:id="'delete_tr_'+${iterStat.index}" class="btn btn-danger btn-circle"
+                                    <a title="删除" th:id="'delete_tr_'+${iterStat.index}" class="btn btn-danger btn-circle"
                                        data-toggle="modal" data-target="#deleteModal"
                                         th:onclick="Values([[${iter.getId()}]],[[${iter.getPid()}]],[[${iterStat.index}]]);">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </td>
-                                <td><span class="h5 m-0 text-dark" th:text="${iter.getExpire()}+'秒'"></span></td>
+                                <td><span class="h5 m-0 text-dark" th:text="${iter.formatExpire()}"></span></td>
                             </tr>
                             </tbody>
                         </table>
@@ -200,7 +200,7 @@
         <footer class="sticky-footer bg-white">
             <div class="container my-auto">
                 <div class="copyright text-center my-auto">
-                    <span>Copyright &copy; vfdxvffd.cn 2021</span>
+                    <span>Copyright &copy; <a href="http://www.vfdxvffd.cn">vfdxvffd.cn</a> 2021</span>
                 </div>
             </div>
         </footer>
@@ -225,10 +225,10 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">选择“注销”即可退出当前帐号</div>
+            <div class="modal-body">选择“退出”即可退出当前帐号</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                <a class="btn btn-primary" href="/logout">注销</a>
+                <a class="btn btn-primary" href="/logout">退出</a>
             </div>
         </div>
     </div>
@@ -327,14 +327,14 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                <a class="btn btn-danger" href="javascript:void(0);" onclick="resume(document.getElementById('re_id').value,
+                <a class="btn btn-danger" href="javascript:void(0);" onclick="resume_file_cover(document.getElementById('re_id').value,
                                                         document.getElementById('re_owner').value,
                                                         document.getElementById('re_fid').value,
-                                                        document.getElementById('re_index').value ,true);">替换文件</a>
-                <a class="btn btn-primary" href="javascript:void(0);" onclick="resume(document.getElementById('re_id').value,
+                                                        document.getElementById('re_index').value);">替换文件</a>
+                <a class="btn btn-primary" href="javascript:void(0);" onclick="resume_file_rename(document.getElementById('re_id').value,
                                                         document.getElementById('re_owner').value,
                                                         document.getElementById('re_fid').value,
-                                                        document.getElementById('re_index').value, false);">保留两个文件</a>
+                                                        document.getElementById('re_index').value);">保留两个文件</a>
             </div>
         </div>
     </div>
@@ -414,7 +414,7 @@
                     $('#duplicateModal').modal('show');
                     return false;
                 }
-                resume(id, owner, fid, index, false);
+                resume_file_noDup(id, owner, fid, index);
                 return false;
             },
             error: function (msg) {
@@ -433,6 +433,74 @@
             contentType: "application/json; charset=utf-8",
             dataType: "text",
             data: {id: id, owner: owner, fid: fid, op: op},
+            success: function (result) {
+                if (result === "success") {
+                    document.getElementById('tr'+index).style.display="none";
+                }
+                alert(result);
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function resume_file_noDup(id, owner, fid, index) {
+        $.ajax({
+            type: "GET",
+            url: "/resumeFileWithNoDup",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            data: {id: id, owner: owner, fid: fid},
+            success: function (result) {
+                if (result === "success") {
+                    document.getElementById('tr'+index).style.display="none";
+                }
+                alert(result);
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function resume_file_cover(id, owner, fid, index) {
+        $('#duplicateModal').modal('hide');
+        $.ajax({
+            type: "GET",
+            url: "/resumeFileWithCover",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            data: {id: id, owner: owner, fid: fid},
+            success: function (result) {
+                if (result === "success") {
+                    document.getElementById('tr'+index).style.display="none";
+                }
+                alert(result);
+                return false;
+            },
+            error: function (msg) {
+                alert("发生错误");
+                return false;
+            }
+        });
+    }
+
+    function resume_file_rename(id, owner, fid, index) {
+        $('#duplicateModal').modal('hide');
+        $.ajax({
+            type: "GET",
+            url: "/resumeFileWithRename",
+            async: false,        //异步下载
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            data: {id: id, owner: owner, fid: fid},
             success: function (result) {
                 if (result === "success") {
                     document.getElementById('tr'+index).style.display="none";

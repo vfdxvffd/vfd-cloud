@@ -67,12 +67,12 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="javascript:void(0);"
+            <a title="主页" class="sidebar-brand d-flex align-items-center justify-content-center" href="javascript:void(0);"
                     th:onclick="enter_into_dir([[${id}]],-1*[[${id}]],0);">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">vfd-cloud <sup>1</sup></div>
+                <div class="sidebar-brand-text mx-3">vfd-cloud<sup>3</sup></div>
             </a>
 
             <!-- Divider -->
@@ -218,7 +218,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
+                                    退出
                                 </a>
                             </div>
                         </li>
@@ -328,17 +328,17 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a th:id="'enter_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
+                                            <a title="进入文件夹" th:id="'enter_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0)" th:onclick="enter_into_dir([[${id}]],[[${dir.getId()}]],[[${dir.getPid()}]]);">
                                                 <span class="h5 m-0 text-sm-center" th:text="${dir.getName()}"></span>
                                             </a>
                                         </td>
                                         <td><span class="h5 m-0 text-dark" th:text="--"></span> </td>         <!--文件夹长度不显示-->
                                         <td>
-                                            <a th:id="'delete_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
+                                            <a title="删除" th:id="'delete_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
-                                            <a th:id="'share_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
+                                            <a title="分享" th:id="'share_tr_'+${dir.getId()}+'_'+${id}+'_'+${dir.getPid()}" href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
                                                th:onclick="Values_share([[${dir.getId()}]],[[${id}]],[[${dir.getPid()}]])" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-share"></i>
                                             </a>
@@ -374,16 +374,16 @@
                                         </td>
                                         <td><span class="h5 m-0 text-dark" th:text="${doc.convertToSize()}"></span></td>
                                         <td>
-                                            <a th:id="'download_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                            <a title="下载" th:id="'download_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
                                                th:href="@{'/download/' + ${doc.getId()}} + '/' + ${id} + '/' + ${doc.getPid()}" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-download"></i>
                                             </a>
-                                            <a th:id="'delete_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                            <a title="删除" th:id="'delete_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
                                                href="javascript:void(0);" data-toggle="modal" data-target="#deleteModal"
                                                th:onclick="Values([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]]);" class="btn btn-danger btn-circle">
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
-                                            <a th:id="'share_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
+                                            <a title="分享" th:id="'share_tr_'+${doc.getId()}+'_'+${id}+'_'+${doc.getPid()}"
                                                href="javascript:void(0);" data-toggle="modal" data-target="#shareModal"
                                                th:onclick="Values_share([[${doc.getId()}]],[[${id}]],[[${doc.getPid()}]])" class="btn btn-primary btn-circle">
                                                 <i class="fas fa-share"></i>
@@ -403,7 +403,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; vfdxvffd.cn 2021</span>
+                        <span>Copyright &copy; <a href="http://www.vfdxvffd.cn">vfdxvffd.cn</a> 2021</span>
                     </div>
                 </div>
             </footer>
@@ -418,6 +418,7 @@
          style="position: absolute; transform: translate3d(3px, 20px, 9px); top: 0px; left: 0px; will-change: transform;"
          x-placement="bottom-start">
         <input type="hidden" id="select_tr_id"/>
+        <a id="menu_enter" class="dropdown-item" href="javascript:void(0);" onclick="enter_click()">进入文件夹</a>
         <a id="menu_download" class="dropdown-item" href="javascript:void(0);" onclick="download_click()">下载</a>
         <a id="menu_delete" class="dropdown-item" href="javascript:void(0);" onclick="delete_click()">删除</a>
         <a id="menu_share" class="dropdown-item" href="javascript:void(0);" onclick="share_click()">分享</a>
@@ -439,10 +440,10 @@
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">选择“注销”即可退出当前帐号</div>
+                <div class="modal-body">选择“退出”即可退出当前帐号</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                    <a class="btn btn-primary" href="/logout">注销</a>
+                    <a class="btn btn-primary" href="/logout">退出</a>
                 </div>
             </div>
         </div>
@@ -476,7 +477,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="shareModalLabel">Share</h5>
+                    <h5 class="modal-title" id="shareModalLabel">分享</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -514,20 +515,20 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm to Delete?</h5>
+                    <h5 class="modal-title" id="deleteModalLabel">确定删除？</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Confirm" below if you are ready to delete your file or dir.</div>
+                <div class="modal-body">选择“永久删除”将永远地删除此文件，选择“移动到回收站”将把文件移动到回收站，回收站最多保存15天</div>
                     <input type="hidden" id="deleteFileId" name="deleteFileId">
                     <input type="hidden" id="deleteFileOwnerId" name="deleteFileOwnerId">
                     <input type="hidden" id="deleteFileFid" name="deleteFileFid">
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value,
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
+                    <a class="btn btn-danger" href="javascript:void(0);" onclick="delete_file(document.getElementById('deleteFileId').value,
                                                                             document.getElementById('deleteFileOwnerId').value,
-                                                                            document.getElementById('deleteFileFid').value)">Confirm</a>
+                                                                            document.getElementById('deleteFileFid').value)">永久删除</a>
                     <a class="btn btn-primary" href="javascript:void(0);" onclick="move_trash(document.getElementById('deleteFileId').value,
                                                                             document.getElementById('deleteFileOwnerId').value,
                                                                             document.getElementById('deleteFileFid').value)">移动到回收站</a>
@@ -542,7 +543,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="DirModalLabel">Enter Dir Name</h5>
+                    <h5 class="modal-title" id="DirModalLabel">输入文件夹名字</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -561,9 +562,9 @@
                     <p id="dup_dir" style="display: none">文件夹名字重复</p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
                     <a onclick="mkdir();"
-                       class="btn btn-primary" href="javascript:void(0)">Create</a>
+                       class="btn btn-primary" href="javascript:void(0)">创建</a>
                 </div>
             </div>
         </div>
@@ -610,6 +611,12 @@
 </body>
 <script type="text/javascript">
 
+    function enter_click() {
+        const tr_id = document.getElementById('select_tr_id').value;
+        const component = document.getElementById('enter_' + tr_id);
+        component.click();
+    }
+
     function download_click() {
         const tr_id = document.getElementById('select_tr_id').value;
         const component = document.getElementById('download_' + tr_id);
@@ -633,9 +640,15 @@
     $(document).on("contextmenu", '#dataTable>tbody>tr', function(e){
         document.getElementById('select_tr_id').value = this.id;
         const tr_id = document.getElementById('select_tr_id').value;
+        const component_enter = document.getElementById('enter_' + tr_id);
         const component_share = document.getElementById('share_' + tr_id);
         const component_delete = document.getElementById('delete_' + tr_id);
         const component_download = document.getElementById('download_' + tr_id);
+        if (component_enter == null) {
+            document.getElementById('menu_enter').style.display="none";
+        } else {
+            document.getElementById('menu_enter').style.display="block";
+        }
         if (component_share == null) {
             document.getElementById('menu_share').style.display="none";
         } else {
@@ -960,10 +973,10 @@
                 document.getElementById('select_time').innerHTML="";
                 document.getElementById('link_and_pass').innerHTML="<form class=\"user\">\n" +
                     "    <div class=\"form-group\">\n" +
-                    "        <input type=\"text\" class=\"form-control form-control-user\" id=\"share_file_link\">\n" +
+                    "        分享链接：<input readonly='readonly' type=\"text\" class=\"form-control form-control-user\" id=\"share_file_link\">\n" +
                     "    </div>\n" +
                     "    <div class=\"form-group\">\n" +
-                    "        <input type=\"text\" class=\"form-control form-control-user\" id=\"share_file_pass\">\n" +
+                    "        提取码：<input readonly='readonly' type=\"text\" class=\"form-control form-control-user\" id=\"share_file_pass\">\n" +
                     "    </div>\n" +
                     "</form>   ";
                 document.getElementById('share_file_link').value = result.link;
@@ -1076,14 +1089,14 @@
         str += "</td>"+
             "<td><span class=\"h5 m-0 text-dark\">" + obj.name + "</span></td>" +
             "<td><span class=\"h5 m-0 text-dark\">" + getFileSize(obj.len) + "</span></td>" +
-            "<td>" + "<a id=\"download_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"/download/" + obj.id + "/" + obj.owner + "/" + obj.pid + "\" class=\"btn btn-primary btn-circle\">" +
+            "<td>" + "<a title=\"下载\" id=\"download_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"/download/" + obj.id + "/" + obj.owner + "/" + obj.pid + "\" class=\"btn btn-primary btn-circle\">" +
             "                                                <i class=\"fas fa-download fa-sm \"></i>" +
             "                                            </a>" +
-            "<a id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+            "<a title=\"删除\" id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
             "                                               onclick=\"Values(" + obj.id + "," + obj.owner + "," + obj.pid + ");\" class=\"btn btn-danger btn-circle\">" +
             "                                                <i class=\"fas fa-trash\"></i>" +
             "                                            </a>" +
-            "<a id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+            "<a title=\"分享\" id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
             "                                               onclick=\"Values_share(" + obj.id + "," + obj.owner + "," + obj.pid + ");\" class=\"btn btn-primary btn-circle\">" +
             "                                                <i class=\"fas fa-share\"></i>" +
             "                                            </a>" + "</td>" +
@@ -1100,17 +1113,17 @@
             "    </span>" +
             "</td>"+
             "<td>"+
-            "<a id=\"enter_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+");\">" +
-            "               <span class=\"h5 m-0 text-dark\">"+obj.name+"</span>" +
+            "<a title=\"进入文件夹\" id=\"enter_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+");\">" +
+            "               <span class=\"h5 m-0 text-sm-center\">"+obj.name+"</span>" +
             "           </a>" +
             "       </td>" +
             "       <td><span class=\"h5 m-0 text-dark\">--</span></td>" +
             "       <td>" +
-            "           <a id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
+            "           <a title=\"删除\" id=\"delete_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#deleteModal\"" +
             "              onclick=\"Values("+obj.id+","+obj.owner+","+obj.pid+");\" class=\"btn btn-danger btn-circle\">" +
             "               <i class=\"fas fa-trash\"></i>" +
             "           </a>" +
-            "           <a id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
+            "           <a title=\"分享\" id=\"share_tr_"+obj.id+'_'+obj.owner+'_'+obj.pid+"\" href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#shareModal\"" +
             "               onclick=\"Values_share("+obj.id+","+obj.owner+","+obj.pid+");\" class=\"btn btn-primary btn-circle\">" +
             "               <i class=\"fas fa-share\"></i>" +
             "           </a>"+

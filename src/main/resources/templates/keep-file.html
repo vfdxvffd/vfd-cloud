@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Title</title>
+    <title>vfd-cloud - 保存文件</title>
     <!-- Custom fonts for this template-->
     <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
     <link
@@ -162,7 +162,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
+                                    退出
                                 </a>
                             </div>
                         </li>
@@ -278,7 +278,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; vfdxvffd.cn 2021</span>
+                        <span>Copyright &copy; <a href="http://www.vfdxvffd.cn">vfdxvffd.cn</a> 2021</span>
                     </div>
                 </div>
             </footer>
@@ -311,10 +311,10 @@
                         <div>
                             <ul id="ul0">
                                 <li th:if="${not #strings.isEmpty(id)}" th:id="'li_'+${id}*-1+'_'+${id}+'_0'">
-                                    <a class="float-left" th:id="'open_'+${id}*-1+'_'+${id}+'_0'" style="display: none" href="javascript:void(0);"
+                                    <a title="展开" class="float-left" th:id="'open_'+${id}*-1+'_'+${id}+'_0'" style="display: none" href="javascript:void(0);"
                                        th:onclick="get_sub_dir([[-1*${id}]],[[${id}]],0)">
                                         <div class="addBtn"></div></a>
-                                    <a class="float-left" th:id="'close_'+${id}*-1+'_'+${id}+'_0'" style="display: block" href="javascript:void(0);"
+                                    <a title="收起" class="float-left" th:id="'close_'+${id}*-1+'_'+${id}+'_0'" style="display: block" href="javascript:void(0);"
                                        th:onclick="close_sub_dir([[-1*${id}]],[[${id}]],0)">
                                         <div class="subBtn"></div></a>
                                     <input type="radio" name="targetDir" id="targetDir" th:value="-1*${id}+'_'+${id}+'_0'" />
@@ -367,10 +367,10 @@
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">选择“注销”即可退出当前帐号</div>
+                <div class="modal-body">选择“退出”即可退出当前帐号</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                    <a class="btn btn-primary" href="/logout">注销</a>
+                    <a class="btn btn-primary" href="/logout">退出</a>
                 </div>
             </div>
         </div>
@@ -491,9 +491,9 @@
 <script type="text/javascript">
 
     function close_modal(id) {
-        var li_id = "li_"+(id*-1)+"_"+id+"_0";
-        var open_id = "open_"+(id*-1)+"_"+id+"_0";
-        var close_id = "close_"+(id*-1)+"_"+id+"_0";
+        const li_id = "li_" + (id * -1) + "_" + id + "_0";
+        const open_id = "open_" + (id * -1) + "_" + id + "_0";
+        const close_id = "close_" + (id * -1) + "_" + id + "_0";
         $('#'+li_id+' ul').remove();
         document.getElementById(open_id).style.display="none";
         document.getElementById(close_id).style.display="block";
@@ -511,6 +511,10 @@
                 cache: false,
                 dataType: "json",
                 success: function (result) {
+                    if ("dup" in result) {
+                        alert('保存的文件已存在');
+                        return false;
+                    }
                     if ("self" in result) {
                         if ("exist" in result) {
                             const exist = result.exist;
@@ -522,7 +526,6 @@
                         }
                         $('#duplicateModal').modal('show');
                     } else {
-                        alert('click');
                         document.getElementById('keep_file').action="/keep_file";
                         document.getElementById('keep_file').submit();
                     }
@@ -600,8 +603,8 @@
                 $.each(dirList, function () {
                     dir_html +=
                         "        <li id=\"li_"+this.id+"_"+this.owner+"_"+this.pid+"\"><div>"+
-                        "        <div class='float-left'><a id=\"open_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: block\" href=\"javascript:void(0);\" onclick=\"get_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"addBtn\"></div></a></div>"+
-                        "        <div class='float-left'><a id=\"close_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: none\" href=\"javascript:void(0);\" onclick=\"close_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"subBtn\"></div></a></div>"+
+                        "        <div class='float-left'><a title=\"展开\" id=\"open_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: block\" href=\"javascript:void(0);\" onclick=\"get_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"addBtn\"></div></a></div>"+
+                        "        <div class='float-left'><a title=\"收起\" id=\"close_"+this.id+"_"+this.owner+"_"+this.pid+"\" style=\"display: none\" href=\"javascript:void(0);\" onclick=\"close_sub_dir("+this.id+","+this.owner+","+this.pid+")\"><div class=\"subBtn\"></div></a></div>"+
                         "        <div ><input type=\"radio\" name=\"targetDir\" id=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\" value=\""+this.id+"_"+this.owner+"_"+this.pid+"\"/>"+
                         "        <label class=\"custom-radio\" for=\"targetDir_"+this.id+"_"+this.owner+"_"+this.pid+"\">" +
                         "        <span id=\"icon_"+this.id+"_"+this.owner+"_"+this.pid+"\" class=\"icon\">\n" +
@@ -634,11 +637,11 @@
             cache: false,
             dataType: "json",
             success: function (result) {
-                var pathList = result.path;
-                var dirList = result.dirs;
-                var currDir = result.currentDir;
-                var docList = result.docs;
-                var flag = false;
+                const pathList = result.path;
+                const dirList = result.dirs;
+                const currDir = result.currentDir;
+                const docList = result.docs;
+                let flag = false;
                 //导航栏
                 $.each(pathList, function () {
                     if (this.id === start_id && this.owner === start_owner && this.pid === start_fid) {
@@ -765,7 +768,7 @@
             "    </span>" +
             "</td>"+
             "<td>"+
-            "<a href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
+            "<a title=\"进入文件夹\" href=\"javascript:void(0)\" onclick=\"enter_into_dir("+obj.owner+","+obj.id+","+obj.pid+","+start_id+","+start_owner+","+start_fid+","+expire+");\">" +
             "               <span class='h5 m-0 text-sm-center'>"+obj.name+"</span>" +
             "           </a>" +
             "       </td>" +

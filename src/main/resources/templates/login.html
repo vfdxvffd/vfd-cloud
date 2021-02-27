@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Vfd-Cloud 1 - Login</title>
+    <title>vfd-cloud - 登录</title>
 
     <!-- Custom fonts for this template-->
     <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
@@ -39,7 +39,7 @@
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                        <h1 class="h4 text-gray-900 mb-4">欢迎回来！</h1>
                                     </div>
                                     <!--提交表单-->
                                     <form class="user" id="user_login" method="post" action="/login">
@@ -50,11 +50,11 @@
                                         <div class="form-group">
                                             <input type="email" class="form-control form-control-user"
                                                 id="exampleInputEmail" name="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Enter Email Address...">
+                                                placeholder="输入邮箱地址">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" name="exampleInputPassword" placeholder="Password">
+                                                id="exampleInputPassword" name="exampleInputPassword" placeholder="密码">
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
@@ -63,17 +63,17 @@
                                                 <input type="hidden" name="customCheck">
                                             </div>
                                         </div>
-                                        <a class="btn btn-primary btn-user btn-block" onclick="document.getElementById('user_login').submit();">
-                                            Login
+                                        <a title="登录" class="btn btn-primary btn-user btn-block" onclick="document.getElementById('user_login').submit();">
+                                            登录
                                         </a>
                                         <hr>
                                     </form>
                                     <!--<hr>-->
                                     <div class="text-center">
-                                        <a class="small" href="/pages/forgot-password">Forgot Password?</a>
+                                        <a class="small" href="/pages/forgot-password">忘记密码？</a>
                                     </div>
                                     <div class="text-center">
-                                        <a class="small" href="/pages/register">Create an Account!</a>
+                                        <a class="small" href="/pages/register">创建新账户！</a>
                                     </div>
                                 </div>
                             </div>

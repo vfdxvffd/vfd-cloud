@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Register</title>
+    <title>vfd-cloud - 注册</title>
 
     <!-- Custom fonts for this template-->
     <link th:href="@{/asserts/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
@@ -34,37 +34,31 @@
                     <div class="col-lg-7">
                         <div class="p-5">
                             <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
+                                <h1 class="h4 text-gray-900 mb-4">创建新账户！</h1>
                             </div>
                             <form class="user" id="user_info" method="post" action="/register">
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="text" class="form-control form-control-user" id="exampleFirstName" name="exampleFirstName"
-                                            placeholder="First Name">
+                                            placeholder="姓">
                                     </div>
                                     <div class="col-sm-6">
                                         <input type="text" class="form-control form-control-user" id="exampleLastName" name="exampleLastName"
-                                            placeholder="Last Name">
+                                            placeholder="名">
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <input type="email" class="form-control form-control-user" id="exampleInputEmail" name="exampleInputEmail"
-                                    placeholder="Email Address">
+                                    placeholder="邮箱地址">
                                 </div>
                                 <!--修改此处，加验证码框-->
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="text" class="form-control form-control-user"
-                                        id="exampleInputVerification" name="exampleInputVerification" placeholder="Verification">
+                                        id="exampleInputVerification" name="exampleInputVerification" placeholder="验证码">
                                     </div>
                                     <div class="col-sm-6">
-                                        <!-- <a href="" id="bt01" class="btn btn-primary btn-user btn-block">
-                                            Get Verification Code
-                                        </a> -->
-                                        <!-- <button id="bt01" class="btn btn-primary btn-user btn-block">Get Code</button> -->
-                                        <!-- <input id="btnSendCode1" type="button" class="btn btn-default" value="获取验证码"
-                               onClick="sendMessage1()"/> -->
-                                        <input id="bt01" type="button" class="btn btn-primary btn-user btn-block" value="Get Verification Code"
+                                        <input id="bt01" type="button" class="btn btn-primary btn-user btn-block" value="获取验证码"
                                             onclick="sendCode()">
                                     </div>
                                 </div>
@@ -72,35 +66,28 @@
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="password" class="form-control form-control-user"
-                                            id="exampleInputPassword" name="exampleInputPassword" placeholder="Password">
+                                            id="exampleInputPassword" name="exampleInputPassword" placeholder="密码">
                                     </div>
                                     <div class="col-sm-6">
                                         <input type="password" class="form-control form-control-user"
-                                            id="exampleRepeatPassword" name="exampleRepeatPassword" placeholder="Repeat Password">
+                                            id="exampleRepeatPassword" name="exampleRepeatPassword" placeholder="重复密码">
                                     </div>
                                 </div>
-                                <div>
+                                <div id="info-tip">
                                     <p style="color: red" th:text="${err}" th:if="${not #strings.isEmpty(err)}"></p>
                                     <p style="color: green" th:text="${msg}" th:if="${not #strings.isEmpty(msg)}"></p>
                                 </div>
-                                <a class="btn btn-primary btn-user btn-block" onclick="document.getElementById('user_info').submit();">
-                                    Register Account
+                                <a class="btn btn-primary btn-user btn-block" onclick="register();">
+                                    注册账户
                                 </a>
-                                
                                 <hr>
-                                <a href="index.html" class="btn btn-google btn-user btn-block">
-                                    <i class="fab fa-google fa-fw"></i> Register with Google
-                                </a>
-                                <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                                    <i class="fab fa-facebook-f fa-fw"></i> Register with Facebook
-                                </a>
                             </form>
                             <hr>
                             <div class="text-center">
-                                <a class="small" href="/pages/forgot-password">Forgot Password?</a>
+                                <a class="small" href="/pages/forgot-password">忘记密码？</a>
                             </div>
                             <div class="text-center">
-                                <a class="small" href="/">Already have an account? Login!</a>
+                                <a class="small" href="/">已经有账户了？登录！</a>
                             </div>
                         </div>
                     </div>
@@ -178,6 +165,21 @@
             curCount1--;
             $("#bt01").val(+curCount1 + "S 重发");
         }
+    }
+
+    function register() {
+        document.getElementById('info-tip').innerHTML = "";
+        const password = document.getElementById('exampleInputPassword').value;
+        const password_re = document.getElementById('exampleRepeatPassword').value;
+        if (password !== password_re) {
+            document.getElementById('info-tip').innerHTML = "<p style=\"color: red\">两次输入密码不一致</p>"
+            return false;
+        }
+        if (password.length < 10) {
+            document.getElementById('info-tip').innerHTML = "<p style=\"color: red\">密码至少10位</p>"
+            return false;
+        }
+        document.getElementById('user_info').submit();
     }
   </script>
 </html>

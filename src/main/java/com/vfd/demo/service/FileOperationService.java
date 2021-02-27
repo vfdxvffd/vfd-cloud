@@ -193,4 +193,12 @@ public interface FileOperationService {
      * @return
      */
     String getNewName(List<FileInfo> byFid, FileInfo f);
+
+    /**
+     *
+     * @param pidByLocal
+     * @param userId
+     * @param fileInfo
+     */
+    void coverDupFile(List<Integer> pidByLocal, Integer userId, FileInfo fileInfo);
 }
