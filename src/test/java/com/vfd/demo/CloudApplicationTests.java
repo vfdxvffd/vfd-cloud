@@ -135,7 +135,7 @@ class CloudApplicationTests {
     @Test
     public void testReName() {
         FileInfo fileInfo = fileOperationService.getFileById(12,1,2);
-        trashController.reNameDir(fileInfo,"t2(2)",1);
+        fileOperationService.reNameDir(fileInfo,"t2(2)",1);
     }
 
     @Test
